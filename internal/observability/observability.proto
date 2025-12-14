@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package observability;
+
+option go_package = "./";
+
+// --- Service Definition ---
+service ObservabilityService {
+  rpc SubmitMetrics(MetricBatch) returns (Ack);
+  rpc SubmitLogs(LogBatch) returns (Ack);
+}
+
+message Ack {
+  bool success = 1;
+  string message = 2;
+}
+
+// --- Global Enums ---
+enum Platform {
+  PLATFORM_UNKNOWN = 0;
+  WEB = 1;
+  IOS = 2;
+  ANDROID = 3;
+  OTHER = 4;
+}
+
+enum NetworkType {
+  NET_UNKNOWN = 0;
+  NET_WIFI = 1;
+  NET_CELLULAR_5G = 2;
+  NET_CELLULAR_4G = 3;
+  NET_CELLULAR_3G = 4;
+  NET_CELLULAR_2G = 5;
+  NET_WIRED = 6;
+  NET_OFFLINE = 7;
+}
+
+enum LogLevel {
+  LEVEL_UNKNOWN = 0;
+  DEBUG = 1;
+  INFO = 2;
+  WARN = 3;
+  ERROR = 4;
+  FATAL = 5;
+}
+
+// --- Messages ---
+
+message MetricBatch {
+  uint32 schema_version = 1;
+  Platform platform = 2;
+  uint32 customer_id = 3;
+  uint32 sdk_version_packed = 4;
+  string host_app_version = 5;
+  optional bytes installation_id = 6;
+  optional bytes journey_id = 7;
+  repeated MetricPoint metrics = 8;
+}
+
+message MetricPoint {
+  uint64 client_timestamp_ms = 1;
+  NetworkType network_type = 2;
+  float battery_level_percent = 3;
+  float cpu_usage_percent = 4;
+  uint32 memory_usage_mb = 5;
+}
+
+message LogBatch {
+  uint32 schema_version = 1;
+  Platform platform = 2;
+  uint32 customer_id = 3;
+  uint32 sdk_version_packed = 4;
+  string host_app_version = 5;
+  optional bytes installation_id = 6;
+  optional bytes journey_id = 7;
+  repeated LogEntry logs = 8;
+}
+
+message LogEntry {
+  uint64 client_timestamp_ms = 1;
+  LogLevel level = 2;
+  string tag = 3;
+  string message = 4;
+  string thread_name = 5;
+  optional string stack_trace = 6;
+  int32 error_code = 7;
+  map<string, string> attributes = 8;
+}
