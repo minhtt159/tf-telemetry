@@ -14,13 +14,20 @@ import (
 const defaultFlushBytes = 1024 * 1024
 
 func New(cfg *config.Config, logger *zap.Logger) (*elasticsearch.Client, esutil.BulkIndexer, error) {
+	// Check if Elasticsearch is configured (has at least one address)
+	if len(cfg.Elastic.Addresses) == 0 || cfg.Elastic.Addresses[0] == "" {
+		logger.Info("Elasticsearch not configured, using null indexer (data will not be persisted)")
+		return nil, NewNull(), nil
+	}
+
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: cfg.Elastic.Addresses,
 		Username:  cfg.Elastic.Username,
 		Password:  cfg.Elastic.Password,
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("error creating ES client: %w", err)
+		logger.Warn("Failed to create Elasticsearch client, using null indexer", zap.Error(err))
+		return nil, NewNull(), nil
 	}
 
 	flushBytes := defaultFlushBytes
@@ -36,7 +43,8 @@ func New(cfg *config.Config, logger *zap.Logger) (*elasticsearch.Client, esutil.
 		FlushInterval: time.Duration(cfg.Elastic.FlushInterval) * time.Second,
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("error creating bulk indexer: %w", err)
+		logger.Warn("Failed to create bulk indexer, using null indexer", zap.Error(err))
+		return nil, NewNull(), nil
 	}
 
 	return es, bi, nil
