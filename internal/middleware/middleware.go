@@ -47,7 +47,7 @@ func (r *RateLimiter) Allow(key string) bool {
 		return true
 	}
 	if key == "" {
-		key = "unknown"
+		key = "missing-installation-id"
 	}
 	limiter := r.limiterForKey(key)
 	return limiter.Allow()

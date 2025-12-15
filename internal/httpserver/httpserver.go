@@ -75,13 +75,13 @@ func installationIDHex(packet *pb.TelemetryPacket) string {
 }
 
 func decodeRequestBody(r *http.Request, message proto.Message) error {
-	body, err := io.ReadAll(r.Body)
+	body, readErr := io.ReadAll(r.Body)
 	closeErr := r.Body.Close()
-	if err == nil && closeErr != nil {
-		err = closeErr
+	if readErr != nil {
+		return readErr
 	}
-	if err != nil {
-		return err
+	if closeErr != nil {
+		return closeErr
 	}
 	return protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, message)
 }
