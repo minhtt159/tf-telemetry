@@ -23,13 +23,13 @@ import (
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
-		os.Exit(runHealthcheck())
-	}
-
 	cfg, err := config.Load("config.yaml")
 	if err != nil {
 		panic(err)
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		os.Exit(runHealthcheck(cfg))
 	}
 
 	log, err := logger.New(cfg.Logging.Level)
@@ -89,22 +89,18 @@ func main() {
 	log.Info("Shutdown complete")
 }
 
-func runHealthcheck() int {
+func runHealthcheck(cfg *config.Config) int {
 	url := os.Getenv("HEALTHCHECK_URL")
 	if url == "" {
-		if cfg, err := config.Load("config.yaml"); err == nil {
-			host := cfg.Server.BindAddress
-			if host == "" {
-				host = "127.0.0.1"
-			}
-			port := cfg.Server.HTTPPort
-			if port == 0 {
-				port = 8080
-			}
-			url = fmt.Sprintf("http://%s:%d/healthz", host, port)
-		} else {
-			url = "http://127.0.0.1:8080/healthz"
+		host := cfg.Server.BindAddress
+		if host == "" {
+			host = "127.0.0.1"
 		}
+		port := cfg.Server.HTTPPort
+		if port == 0 {
+			port = 8080
+		}
+		url = fmt.Sprintf("http://%s:%d/healthz", host, port)
 	}
 	timeout := 2 * time.Second
 	if v := os.Getenv("HEALTHCHECK_TIMEOUT"); v != "" {
