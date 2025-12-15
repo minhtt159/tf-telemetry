@@ -2,11 +2,16 @@ syntax = "proto3";
 
 package observability;
 
-option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/observability;observability";
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pb";
 
 import "common.proto";
 import "metrics.proto";
 import "logs.proto";
+
+message Ack {
+  bool success = 1;
+  string message = 2;
+}
 
 // --- Service Definition ---
 service Collector {
