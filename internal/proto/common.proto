@@ -1,13 +1,8 @@
 syntax = "proto3";
 
-package telemetry;
+package observability;
 
-option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/proto;proto";
-
-message Ack {
-  bool success = 1;
-  string message = 2;
-}
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/observability;observability";
 
 enum Platform {
   PLATFORM_UNKNOWN = 0;
@@ -26,13 +21,4 @@ enum NetworkType {
   NET_CELLULAR_2G = 5;
   NET_WIRED = 6;
   NET_OFFLINE = 7;
-}
-
-enum LogLevel {
-  LEVEL_UNKNOWN = 0;
-  DEBUG = 1;
-  INFO = 2;
-  WARN = 3;
-  ERROR = 4;
-  FATAL = 5;
 }

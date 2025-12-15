@@ -1,29 +1,30 @@
 syntax = "proto3";
 
-package telemetry;
+package observability;
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/observability;observability";
 
 import "common.proto";
 
-option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/proto;proto";
-
 message LogBatch {
-  uint32 schema_version = 1;
-  Platform platform = 2;
-  uint32 customer_id = 3;
-  uint32 sdk_version_packed = 4;
-  string host_app_version = 5;
-  optional bytes installation_id = 6;
-  optional bytes journey_id = 7;
-  repeated LogEntry logs = 8;
+  repeated LogEntry entries = 1;
 }
 
 message LogEntry {
   uint64 client_timestamp_ms = 1;
-  LogLevel level = 2;
-  string tag = 3;
-  string message = 4;
-  string thread_name = 5;
-  optional string stack_trace = 6;
-  int32 error_code = 7;
-  map<string, string> attributes = 8;
+  NetworkType network_type = 2;
+  LogLevel level = 3;
+  string tag = 4;
+  string message = 5;
+
+  map<string, string> context = 6;
+  optional string stack_trace = 7;
+}
+
+enum LogLevel {
+  DEBUG = 0;
+  INFO = 1;
+  WARN = 2;
+  ERROR = 3;
+  FATAL = 4;
 }
