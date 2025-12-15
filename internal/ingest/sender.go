@@ -25,10 +25,6 @@ type Sender struct {
 
 // NewSender returns a Sender instance.
 func NewSender(logger *zap.Logger, bi esutil.BulkIndexer, cfg *config.Config) *Sender {
-	// Fall back to a no-op logger when none is provided by the caller.
-	if logger == nil {
-		logger = zap.NewNop()
-	}
 	return &Sender{
 		logger:      logger,
 		bulkIndexer: bi,
