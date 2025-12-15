@@ -89,8 +89,12 @@ func main() {
 }
 
 func runHealthcheck() int {
+	url := os.Getenv("HEALTHCHECK_URL")
+	if url == "" {
+		url = "http://127.0.0.1:8080/healthz"
+	}
 	client := &http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get("http://127.0.0.1:8080/healthz")
+	resp, err := client.Get(url)
 	if err != nil {
 		return 1
 	}
