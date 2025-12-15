@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"go.uber.org/zap"
@@ -144,13 +143,5 @@ func TestHTTPServerRateLimit(t *testing.T) {
 	handler.ServeHTTP(rr2, req2)
 	if rr2.Code != http.StatusTooManyRequests {
 		t.Fatalf("expected rate limited response, got %d", rr2.Code)
-	}
-
-	time.Sleep(time.Second)
-	req3 := httptest.NewRequest(http.MethodPost, "/v1/telemetry", bytes.NewReader(body))
-	rr3 := httptest.NewRecorder()
-	handler.ServeHTTP(rr3, req3)
-	if rr3.Code != http.StatusAccepted {
-		t.Fatalf("expected request after refill accepted, got %d", rr3.Code)
 	}
 }

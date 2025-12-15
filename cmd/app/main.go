@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
 	"github.com/threatfabric-devops/tf-telemetry/internal/indexer"
@@ -40,9 +41,15 @@ func main() {
 		log.Fatal("failed to start gRPC server", zap.Error(err))
 	}
 
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil && err != grpc.ErrServerStopped {
+			log.Error("Failed to serve gRPC", zap.Error(err))
+		}
+	}()
+
 	httpServer := svc.HTTPServer(cfg)
 	go func() {
-		log.Info("HTTP server listening", zap.Int("port", cfg.Server.HttpPort))
+		log.Info("HTTP server listening", zap.String("addr", httpServer.Addr))
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal("Failed to serve HTTP", zap.Error(err))
 		}

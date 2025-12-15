@@ -11,6 +11,8 @@ import (
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
 )
 
+const defaultFlushBytes = 1024 * 1024
+
 func New(cfg *config.Config, logger *zap.Logger) (*elasticsearch.Client, esutil.BulkIndexer, error) {
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: cfg.Elastic.Addresses,
@@ -21,7 +23,7 @@ func New(cfg *config.Config, logger *zap.Logger) (*elasticsearch.Client, esutil.
 		return nil, nil, fmt.Errorf("error creating ES client: %w", err)
 	}
 
-	flushBytes := 1024 * 1024
+	flushBytes := defaultFlushBytes
 	if cfg.Elastic.BatchSize > 0 {
 		flushBytes = cfg.Elastic.BatchSize
 	}

@@ -80,7 +80,7 @@ type UnsafeCollectorServer interface {
 }
 
 func RegisterCollectorServer(s grpc.ServiceRegistrar, srv CollectorServer) {
-	// If the following call pancis, it indicates UnimplementedCollectorServer was
+	// If the following call panics, it indicates UnimplementedCollectorServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.

@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
@@ -21,6 +23,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -31,14 +34,41 @@ type Service struct {
 	logger      *zap.Logger
 	bulkIndexer esutil.BulkIndexer
 	cfg         *config.Config
+	rateLimit   rate.Limit
+	rateBurst   int
+	limiterMu   sync.Mutex
+	limiters    map[string]*rate.Limiter
 }
 
 func New(logger *zap.Logger, bi esutil.BulkIndexer, cfg *config.Config) *Service {
-	return &Service{
+	svc := &Service{
 		logger:      logger,
 		bulkIndexer: bi,
 		cfg:         cfg,
 	}
+	if cfg.Server.RateLimit.Enabled {
+		svc.rateLimit = rate.Limit(cfg.Server.RateLimit.RequestsPerSecond)
+		svc.rateBurst = cfg.Server.RateLimit.Burst
+		svc.limiters = make(map[string]*rate.Limiter)
+	}
+	return svc
+}
+
+func (s *Service) limiterForKey(key string) *rate.Limiter {
+	if s.rateLimit <= 0 {
+		return nil
+	}
+	if key == "" {
+		key = "global"
+	}
+	s.limiterMu.Lock()
+	defer s.limiterMu.Unlock()
+	if limiter, ok := s.limiters[key]; ok {
+		return limiter
+	}
+	limiter := rate.NewLimiter(s.rateLimit, s.rateBurst)
+	s.limiters[key] = limiter
+	return limiter
 }
 
 func (s *Service) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) (*pb.Ack, error) {
@@ -49,14 +79,14 @@ func (s *Service) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket)
 	if packet.Metrics != nil {
 		for _, point := range packet.Metrics.Points {
 			doc := s.metricDocument(packet.Metadata, point)
-			s.indexAsync(s.cfg.Elastic.IndexMetrics, doc)
+			s.indexAsync(ctx, s.cfg.Elastic.IndexMetrics, doc)
 		}
 	}
 
 	if packet.Logs != nil {
 		for _, entry := range packet.Logs.Entries {
 			doc := s.logDocument(packet.Metadata, entry)
-			s.indexAsync(s.cfg.Elastic.IndexLogs, doc)
+			s.indexAsync(ctx, s.cfg.Elastic.IndexLogs, doc)
 		}
 	}
 
@@ -126,27 +156,31 @@ func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) m
 	}
 }
 
-func (s *Service) indexAsync(index string, doc map[string]interface{}) {
+func (s *Service) indexAsync(ctx context.Context, index string, doc map[string]interface{}) {
 	data, err := json.Marshal(doc)
 	if err != nil {
 		s.logger.Error("Failed to marshal document", zap.Error(err))
 		return
 	}
 
-	err = s.bulkIndexer.Add(context.Background(), esutil.BulkIndexerItem{
+	err = s.bulkIndexer.Add(ctx, esutil.BulkIndexerItem{
 		Action: "index",
 		Index:  index,
 		Body:   bytes.NewReader(data),
 		OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
+			fields := []zap.Field{
+				zap.String("index", item.Index),
+				zap.Int("status", res.Status),
+				zap.String("result", res.Result),
+			}
 			if err != nil {
-				s.logger.Error("Failed to index", zap.Error(err))
+				s.logger.Error("Failed to index", append(fields, zap.Error(err))...)
 				return
 			}
 			if res.Error.Type != "" || res.Error.Reason != "" {
-				s.logger.Error("Failed to index", zap.String("err", res.Error.Reason))
-				return
+				fields = append(fields, zap.String("err", res.Error.Reason), zap.String("type", res.Error.Type))
+				s.logger.Error("Failed to index", fields...)
 			}
-			s.logger.Error("Failed to index")
 		},
 	})
 	if err != nil {
@@ -173,7 +207,7 @@ func (s *Service) httpHandler() http.Handler {
 		}
 		var packet pb.TelemetryPacket
 		if err := decodeRequestBody(r, &packet); err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			http.Error(w, "Invalid request format", http.StatusBadRequest)
 			return
 		}
 		if _, err := s.SendTelemetry(r.Context(), &packet); err != nil {
@@ -195,7 +229,7 @@ func (s *Service) httpHandler() http.Handler {
 func basicAuthMiddleware(next http.Handler, cfg config.BasicAuthConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
-		if !ok || username != cfg.Username || password != cfg.Password {
+		if !ok || !credentialsMatch(username, password, cfg) {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
@@ -204,9 +238,13 @@ func basicAuthMiddleware(next http.Handler, cfg config.BasicAuthConfig) http.Han
 	})
 }
 
-func rateLimitMiddleware(next http.Handler, limiter *rate.Limiter) http.Handler {
+func (s *Service) rateLimitMiddleware(next http.Handler) http.Handler {
+	if s.rateLimit <= 0 {
+		return next
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.Allow() {
+		limiter := s.limiterForKey(clientKeyFromRequest(r))
+		if limiter != nil && !limiter.Allow() {
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
@@ -217,17 +255,14 @@ func rateLimitMiddleware(next http.Handler, limiter *rate.Limiter) http.Handler 
 func (s *Service) HTTPServer(cfg *config.Config) *http.Server {
 	handler := s.httpHandler()
 
-	if cfg.Server.RateLimit.Enabled {
-		limiter := rate.NewLimiter(rate.Limit(cfg.Server.RateLimit.RequestsPerSecond), cfg.Server.RateLimit.Burst)
-		handler = rateLimitMiddleware(handler, limiter)
-	}
+	handler = s.rateLimitMiddleware(handler)
 
 	if cfg.Server.BasicAuth.Enabled {
 		handler = basicAuthMiddleware(handler, cfg.Server.BasicAuth)
 	}
 
 	return &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Server.HttpPort),
+		Addr:    fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.HttpPort),
 		Handler: handler,
 	}
 }
@@ -240,9 +275,8 @@ func (s *Service) grpcInterceptors(cfg *config.Config) []grpc.UnaryServerInterce
 		interceptors = append(interceptors, s.basicAuthInterceptor(cfg.Server.BasicAuth))
 	}
 
-	if cfg.Server.RateLimit.Enabled {
-		limiter := rate.NewLimiter(rate.Limit(cfg.Server.RateLimit.RequestsPerSecond), cfg.Server.RateLimit.Burst)
-		interceptors = append(interceptors, rateLimitInterceptor(limiter))
+	if rl := s.rateLimitInterceptor(); rl != nil {
+		interceptors = append(interceptors, rl)
 	}
 
 	return interceptors
@@ -260,17 +294,13 @@ func (s *Service) GRPCServer(cfg *config.Config) *grpc.Server {
 }
 
 func (s *Service) StartGRPC(cfg *config.Config) (*grpc.Server, net.Listener, error) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.GrpcPort))
+	addr := fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.GrpcPort)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, nil, err
 	}
 	grpcServer := s.GRPCServer(cfg)
-	s.logger.Info("gRPC server listening", zap.Int("port", cfg.Server.GrpcPort))
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			s.logger.Error("Failed to serve gRPC", zap.Error(err))
-		}
-	}()
+	s.logger.Info("gRPC server listening", zap.String("addr", addr))
 	return grpcServer, lis, nil
 }
 
@@ -306,15 +336,43 @@ func validateBasicAuth(md metadata.MD, cfg config.BasicAuthConfig) error {
 	if len(parts) != 2 {
 		return errors.New("invalid authorization value")
 	}
-	if parts[0] != cfg.Username || parts[1] != cfg.Password {
+	if !credentialsMatch(parts[0], parts[1], cfg) {
 		return errors.New("invalid credentials")
 	}
 	return nil
 }
 
-func rateLimitInterceptor(limiter *rate.Limiter) grpc.UnaryServerInterceptor {
+func credentialsMatch(username, password string, cfg config.BasicAuthConfig) bool {
+	return subtle.ConstantTimeCompare([]byte(username), []byte(cfg.Username)) == 1 &&
+		subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Password)) == 1
+}
+
+func clientKeyFromRequest(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+
+func clientKeyFromContext(ctx context.Context) string {
+	if p, ok := peer.FromContext(ctx); ok && p.Addr != nil {
+		host, _, err := net.SplitHostPort(p.Addr.String())
+		if err != nil {
+			return p.Addr.String()
+		}
+		return host
+	}
+	return ""
+}
+
+func (s *Service) rateLimitInterceptor() grpc.UnaryServerInterceptor {
+	if s.rateLimit <= 0 {
+		return nil
+	}
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		if !limiter.Allow() {
+		limiter := s.limiterForKey(clientKeyFromContext(ctx))
+		if limiter != nil && !limiter.Allow() {
 			return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
 		}
 		return handler(ctx, req)

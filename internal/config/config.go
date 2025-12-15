@@ -21,6 +21,7 @@ type RateLimitConfig struct {
 
 type Config struct {
 	Server struct {
+		BindAddress string          `mapstructure:"bind_address"`
 		GrpcPort  int             `mapstructure:"grpc_port"`
 		HttpPort  int             `mapstructure:"http_port"`
 		BasicAuth BasicAuthConfig `mapstructure:"basic_auth"`
@@ -57,6 +58,7 @@ func Load(path string) (*Config, error) {
 			return nil, fmt.Errorf("rate limit enabled but requests_per_second not set")
 		}
 		if cfg.Server.RateLimit.Burst == 0 {
+			// Default burst to a single second worth of requests to align with limiter tokens.
 			cfg.Server.RateLimit.Burst = int(math.Ceil(cfg.Server.RateLimit.RequestsPerSecond))
 		}
 	}
