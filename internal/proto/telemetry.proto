@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package observability;
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/observability;observability";
+
+import "common.proto";
+import "metrics.proto";
+import "logs.proto";
+
+// --- Service Definition ---
+service Collector {
+  rpc SendTelemetry(TelemetryPacket) returns (Ack);
+}
+
+// --- The Envelop ---
+message TelemetryPacket {
+  uint32 schema_version = 1;
+  ClientMetadata metadata = 2;
+
+  optional MetricBatch metrics = 3;
+  optional LogBatch logs = 4;
+}
+
+// --- The Shared Context ---
+message ClientMetadata {
+  Platform platform = 1;
+
+  // Identifiers
+  optional bytes installation_id = 2;
+  optional bytes journey_id = 3;
+
+  // Versions
+  uint32 sdk_version_packed = 4;
+  string host_app_version = 5;
+  string host_app_name = 6;
+ 
+  optional DeviceHardwareInfo device_hardware = 7;
+}

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package observability;
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/observability;observability";
+
+import "common.proto";
+
+message LogBatch {
+  repeated LogEntry entries = 1;
+}
+
+message LogEntry {
+  uint64 client_timestamp_ms = 1;
+  NetworkType network_type = 2;
+  LogLevel level = 3;
+  string tag = 4;
+  string message = 5;
+
+  map<string, string> context = 6;
+  optional string stack_trace = 7;
+}
+
+enum LogLevel {
+  DEBUG = 0;
+  INFO = 1;
+  WARN = 2;
+  ERROR = 3;
+  FATAL = 4;
+}

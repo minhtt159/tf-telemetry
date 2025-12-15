@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package observability;
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/observability;observability";
+
+import "common.proto";
+
+// --- Static Hardware Info ---
+message DeviceHardwareInfo {
+  uint32 physical_cores = 1;
+  uint32 logical_cpus = 2;
+  uint32 l1_cache_kb = 3;
+  uint32 l2_cache_kb = 4;
+  uint32 l3_cache_kb = 5;
+  uint64 total_physical_memory = 6;
+}
+
+// --- MetricBatch ---
+message MetricBatch {
+  repeated MetricPoint points = 1;
+}
+
+message MetricPoint {
+  uint64 client_timestamp_ms = 1;
+  NetworkType network_type = 2;
+
+  float battery_level_percent = 3;
+  optional CpuDetail cpu = 4;
+  optional MemoryDetail memory = 5;
+}
+
+message CpuDetail {
+  float total_usage_percent = 1;
+  repeated float core_usage_percent = 2;
+}
+
+message MemoryDetail {
+  // App Specific
+  uint64 app_resident_bytes = 1;
+  uint64 app_virtual_bytes = 2;
+
+  // System Specific
+  uint64 system_free_bytes = 3;
+  uint64 system_active_bytes = 4;
+  uint64 system_inactive_bytes = 5;
+  uint64 system_wired_bytes = 6;
+}
