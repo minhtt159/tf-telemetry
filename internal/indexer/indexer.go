@@ -19,6 +19,8 @@ func New(cfg *config.Config, logger *zap.Logger) (*elasticsearch.Client, esutil.
 		return nil, NewNull(), nil
 	}
 
+	// Attempt to create ES client. Falls back to null indexer on error for graceful degradation.
+	// This allows the server to start and accept telemetry even when ES is unavailable.
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: cfg.Elastic.Addresses,
 		Username:  cfg.Elastic.Username,
