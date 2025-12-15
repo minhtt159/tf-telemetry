@@ -1,6 +1,15 @@
 server:
+  bind_address: ""
   grpc_port: 50051
   http_port: 8080
+  basic_auth:
+    enabled: false
+    username: ""
+    password: ""
+  rate_limit:
+    enabled: false
+    requests_per_second: 10
+    burst: 20
 
 elasticsearch:
   addresses:

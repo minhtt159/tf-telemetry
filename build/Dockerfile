@@ -12,7 +12,7 @@ RUN go mod download
 
 COPY . .
 # Build statically
-RUN CGO_ENABLED=0 GOOS=linux go build -o observability-server main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o observability-server ./cmd/app
 
 # Stage 2: Run
 FROM gcr.io/distroless/static-debian12
