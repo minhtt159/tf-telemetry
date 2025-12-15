@@ -22,7 +22,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	pb "github.com/threatfabric-devops/tf-telemetry/internal/observability"
+	pb "github.com/threatfabric-devops/tf-telemetry/internal/proto"
 )
 
 // --- Config ---
@@ -47,7 +47,7 @@ type Config struct {
 
 // --- Service ---
 type Server struct {
-	pb.UnimplementedObservabilityServiceServer
+	pb.UnimplementedTelemetryServiceServer
 	logger      *zap.Logger
 	bulkIndexer esutil.BulkIndexer
 	cfg         *Config
@@ -217,7 +217,7 @@ func runGrpc(srv *Server, port int) {
 		srv.logger.Fatal("Failed to listen gRPC", zap.Error(err))
 	}
 	grpcServer := grpc.NewServer()
-	pb.RegisterObservabilityServiceServer(grpcServer, srv)
+	pb.RegisterTelemetryServiceServer(grpcServer, srv)
 	srv.logger.Info("gRPC server listening", zap.Int("port", port))
 	if err := grpcServer.Serve(lis); err != nil {
 		srv.logger.Fatal("Failed to serve gRPC", zap.Error(err))

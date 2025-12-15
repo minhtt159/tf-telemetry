@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package telemetry;
+
+import "common.proto";
+import "logs.proto";
+import "metrics.proto";
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/proto;proto";
+
+service TelemetryService {
+  rpc SubmitMetrics(MetricBatch) returns (Ack);
+  rpc SubmitLogs(LogBatch) returns (Ack);
+}

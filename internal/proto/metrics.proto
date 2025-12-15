@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package telemetry;
+
+import "common.proto";
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/proto;proto";
+
+message MetricBatch {
+  uint32 schema_version = 1;
+  Platform platform = 2;
+  uint32 customer_id = 3;
+  uint32 sdk_version_packed = 4;
+  string host_app_version = 5;
+  optional bytes installation_id = 6;
+  optional bytes journey_id = 7;
+  repeated MetricPoint metrics = 8;
+}
+
+message MetricPoint {
+  uint64 client_timestamp_ms = 1;
+  NetworkType network_type = 2;
+  float battery_level_percent = 3;
+  float cpu_usage_percent = 4;
+  uint32 memory_usage_mb = 5;
+}

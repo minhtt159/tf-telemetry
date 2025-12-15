@@ -1,3 +1,2 @@
 # Generated protobuf files
 *.pb.go
-!internal/observability/*.pb.go

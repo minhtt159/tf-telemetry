@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package telemetry;
+
+option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/proto;proto";
+
+message Ack {
+  bool success = 1;
+  string message = 2;
+}
+
+enum Platform {
+  PLATFORM_UNKNOWN = 0;
+  WEB = 1;
+  IOS = 2;
+  ANDROID = 3;
+  OTHER = 4;
+}
+
+enum NetworkType {
+  NET_UNKNOWN = 0;
+  NET_WIFI = 1;
+  NET_CELLULAR_5G = 2;
+  NET_CELLULAR_4G = 3;
+  NET_CELLULAR_3G = 4;
+  NET_CELLULAR_2G = 5;
+  NET_WIRED = 6;
+  NET_OFFLINE = 7;
+}
+
+enum LogLevel {
+  LEVEL_UNKNOWN = 0;
+  DEBUG = 1;
+  INFO = 2;
+  WARN = 3;
+  ERROR = 4;
+  FATAL = 5;
+}

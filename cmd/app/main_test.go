@@ -10,7 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"go.uber.org/zap"
 
-	pb "github.com/threatfabric-devops/tf-telemetry/internal/observability"
+	pb "github.com/threatfabric-devops/tf-telemetry/internal/proto"
 )
 
 type recordedItem struct {
