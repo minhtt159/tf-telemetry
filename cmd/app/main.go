@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -19,8 +20,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
-	pb "observability"
+	pb "github.com/threatfabric-devops/tf-telemetry/internal/observability"
 )
 
 // --- Config ---
@@ -64,8 +66,13 @@ func main() {
 
 	// 2. Logger
 	loggerConfig := zap.NewProductionConfig()
-	loggerConfig.Level.UnmarshalText([]byte(cfg.Logging.Level))
-	logger, _ := loggerConfig.Build()
+	if err := loggerConfig.Level.UnmarshalText([]byte(cfg.Logging.Level)); err != nil {
+		panic(fmt.Errorf("invalid log level: %w", err))
+	}
+	logger, err := loggerConfig.Build()
+	if err != nil {
+		panic(fmt.Errorf("failed to build logger: %w", err))
+	}
 	defer logger.Sync()
 
 	// 3. Elasticsearch Client
@@ -166,19 +173,40 @@ func (s *Server) SubmitLogs(ctx context.Context, batch *pb.LogBatch) (*pb.Ack, e
 
 // --- Helper: Async ES Write ---
 func (s *Server) indexAsync(index string, doc interface{}) {
-	data, _ := json.Marshal(doc)
+	data, err := json.Marshal(doc)
+	if err != nil {
+		s.logger.Error("Failed to marshal document", zap.Error(err))
+		return
+	}
 
-	err := s.bulkIndexer.Add(context.Background(), esutil.BulkIndexerItem{
+	err = s.bulkIndexer.Add(context.Background(), esutil.BulkIndexerItem{
 		Action: "index",
 		Index:  index,
 		Body:   bytes.NewReader(data),
 		OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
-			s.logger.Error("Failed to index", zap.String("err", res.Error.Reason))
+			if err != nil {
+				s.logger.Error("Failed to index", zap.Error(err))
+				return
+			}
+			if res.Error.Type != "" || res.Error.Reason != "" {
+				s.logger.Error("Failed to index", zap.String("err", res.Error.Reason))
+				return
+			}
+			s.logger.Error("Failed to index")
 		},
 	})
 	if err != nil {
 		s.logger.Error("Failed to add to indexer", zap.Error(err))
 	}
+}
+
+func decodeRequestBody(r *http.Request, message proto.Message) error {
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	return protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, message)
 }
 
 // --- Server Launchers ---
@@ -206,11 +234,7 @@ func runHttp(srv *Server, port int) {
 			return
 		}
 		var batch pb.MetricBatch
-		// Use protojson to allow standard JSON mapping to proto fields
-		body := make([]byte, r.ContentLength)
-		r.Body.Read(body)
-
-		if err := protojson.Unmarshal(body, &batch); err != nil {
+		if err := decodeRequestBody(r, &batch); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
@@ -226,9 +250,7 @@ func runHttp(srv *Server, port int) {
 			return
 		}
 		var batch pb.LogBatch
-		body := make([]byte, r.ContentLength)
-		r.Body.Read(body)
-		if err := protojson.Unmarshal(body, &batch); err != nil {
+		if err := decodeRequestBody(r, &batch); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
