@@ -22,10 +22,10 @@ type RateLimitConfig struct {
 type Config struct {
 	Server struct {
 		BindAddress string          `mapstructure:"bind_address"`
-		GrpcPort  int             `mapstructure:"grpc_port"`
-		HttpPort  int             `mapstructure:"http_port"`
-		BasicAuth BasicAuthConfig `mapstructure:"basic_auth"`
-		RateLimit RateLimitConfig `mapstructure:"rate_limit"`
+		GRPCPort    int             `mapstructure:"grpc_port"`
+		HTTPPort    int             `mapstructure:"http_port"`
+		BasicAuth   BasicAuthConfig `mapstructure:"basic_auth"`
+		RateLimit   RateLimitConfig `mapstructure:"rate_limit"`
 	} `mapstructure:"server"`
 	Elastic struct {
 		Addresses     []string `mapstructure:"addresses"`

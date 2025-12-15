@@ -93,8 +93,8 @@ func (s *Service) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket)
 	return &pb.Ack{Success: true, Message: "Accepted"}, nil
 }
 
-func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPoint) map[string]interface{} {
-	doc := map[string]interface{}{
+func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPoint) map[string]any {
+	doc := map[string]any{
 		"timestamp":        point.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
 		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
@@ -107,7 +107,7 @@ func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPo
 	}
 
 	if hardware := metadata.GetDeviceHardware(); hardware != nil {
-		doc["device_hardware"] = map[string]interface{}{
+		doc["device_hardware"] = map[string]any{
 			"physical_cores":       hardware.GetPhysicalCores(),
 			"logical_cpus":         hardware.GetLogicalCpus(),
 			"l1_cache_kb":          hardware.GetL1CacheKb(),
@@ -118,14 +118,14 @@ func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPo
 	}
 
 	if cpu := point.GetCpu(); cpu != nil {
-		doc["cpu"] = map[string]interface{}{
+		doc["cpu"] = map[string]any{
 			"total_usage_percent": cpu.GetTotalUsagePercent(),
 			"core_usage_percent":  cpu.GetCoreUsagePercent(),
 		}
 	}
 
 	if memory := point.GetMemory(); memory != nil {
-		doc["memory"] = map[string]interface{}{
+		doc["memory"] = map[string]any{
 			"app_resident_bytes":    memory.GetAppResidentBytes(),
 			"app_virtual_bytes":     memory.GetAppVirtualBytes(),
 			"system_free_bytes":     memory.GetSystemFreeBytes(),
@@ -138,8 +138,8 @@ func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPo
 	return doc
 }
 
-func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) map[string]interface{} {
-	return map[string]interface{}{
+func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) map[string]any {
+	return map[string]any{
 		"timestamp":        entry.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
 		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
@@ -156,7 +156,7 @@ func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) m
 	}
 }
 
-func (s *Service) indexAsync(ctx context.Context, index string, doc map[string]interface{}) {
+func (s *Service) indexAsync(ctx context.Context, index string, doc map[string]any) {
 	data, err := json.Marshal(doc)
 	if err != nil {
 		s.logger.Error("Failed to marshal document", zap.Error(err))
@@ -189,7 +189,11 @@ func (s *Service) indexAsync(ctx context.Context, index string, doc map[string]i
 }
 
 func decodeRequestBody(r *http.Request, message proto.Message) error {
-	defer r.Body.Close()
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
@@ -262,7 +266,7 @@ func (s *Service) HTTPServer(cfg *config.Config) *http.Server {
 	}
 
 	return &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.HttpPort),
+		Addr:    fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.HTTPPort),
 		Handler: handler,
 	}
 }
@@ -294,7 +298,7 @@ func (s *Service) GRPCServer(cfg *config.Config) *grpc.Server {
 }
 
 func (s *Service) StartGRPC(cfg *config.Config) (*grpc.Server, net.Listener, error) {
-	addr := fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.GrpcPort)
+	addr := fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.GRPCPort)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, nil, err
@@ -305,7 +309,7 @@ func (s *Service) StartGRPC(cfg *config.Config) (*grpc.Server, net.Listener, err
 }
 
 func (s *Service) basicAuthInterceptor(cfg config.BasicAuthConfig) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Error(codes.Unauthenticated, "missing metadata")
@@ -370,7 +374,7 @@ func (s *Service) rateLimitInterceptor() grpc.UnaryServerInterceptor {
 	if s.rateLimit <= 0 {
 		return nil
 	}
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		limiter := s.limiterForKey(clientKeyFromContext(ctx))
 		if limiter != nil && !limiter.Allow() {
 			return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")

@@ -51,7 +51,7 @@ func BenchmarkMarshalTelemetryPacket(b *testing.B) {
 		Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID},
 		Metrics:  &pb.MetricBatch{Points: []*pb.MetricPoint{{}}},
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		if _, err := protojson.Marshal(packet); err != nil {
 			b.Fatalf("marshal failed: %v", err)
 		}

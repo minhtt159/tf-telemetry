@@ -39,8 +39,8 @@ func (s *stubBulkIndexer) Stats() esutil.BulkIndexerStats { return esutil.BulkIn
 
 func newTestConfig() *config.Config {
 	cfg := &config.Config{}
-	cfg.Server.HttpPort = 8080
-	cfg.Server.GrpcPort = 50051
+	cfg.Server.HTTPPort = 8080
+	cfg.Server.GRPCPort = 50051
 	cfg.Elastic.IndexLogs = "logs"
 	cfg.Elastic.IndexMetrics = "metrics"
 	return cfg
@@ -84,7 +84,7 @@ func TestSendTelemetryIndexesMetricsAndLogs(t *testing.T) {
 		t.Fatalf("expected 2 indexed documents, got %d", len(bi.items))
 	}
 
-	var doc map[string]interface{}
+	var doc map[string]any
 	if err := json.Unmarshal(bi.items[0].body, &doc); err != nil {
 		t.Fatalf("failed to unmarshal metric doc: %v", err)
 	}
