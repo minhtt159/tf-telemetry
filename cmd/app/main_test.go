@@ -10,6 +10,7 @@ import (
 
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
 	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
+	"github.com/threatfabric-devops/tf-telemetry/internal/ingest"
 	"github.com/threatfabric-devops/tf-telemetry/internal/server"
 )
 
@@ -32,7 +33,8 @@ func TestMainCanSendTelemetry(t *testing.T) {
 	cfg.Elastic.IndexLogs = "logs-index"
 	cfg.Elastic.IndexMetrics = "metrics-index"
 
-	svc := server.New(zap.NewNop(), indexer, cfg)
+	sender := ingest.NewSender(zap.NewNop(), indexer, cfg)
+	svc := server.New(sender)
 	packet := &pb.TelemetryPacket{
 		Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID},
 		Metrics:  &pb.MetricBatch{Points: []*pb.MetricPoint{{}}},
