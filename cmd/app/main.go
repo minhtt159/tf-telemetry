@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -91,7 +92,19 @@ func main() {
 func runHealthcheck() int {
 	url := os.Getenv("HEALTHCHECK_URL")
 	if url == "" {
-		url = "http://127.0.0.1:8080/healthz"
+		if cfg, err := config.Load("config.yaml"); err == nil {
+			host := cfg.Server.BindAddress
+			if host == "" {
+				host = "127.0.0.1"
+			}
+			port := cfg.Server.HTTPPort
+			if port == 0 {
+				port = 8080
+			}
+			url = fmt.Sprintf("http://%s:%d/healthz", host, port)
+		} else {
+			url = "http://127.0.0.1:8080/healthz"
+		}
 	}
 	timeout := 2 * time.Second
 	if v := os.Getenv("HEALTHCHECK_TIMEOUT"); v != "" {
