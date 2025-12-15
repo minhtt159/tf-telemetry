@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"

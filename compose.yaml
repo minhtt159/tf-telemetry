@@ -14,12 +14,6 @@ services:
     networks:
       - telemetry-net
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   # Web client (nginx)
   web-client:
@@ -32,8 +26,7 @@ services:
       - telemetry-net
     restart: unless-stopped
     depends_on:
-      telemetry-server:
-        condition: service_healthy
+      - telemetry-server
 
 networks:
   telemetry-net:

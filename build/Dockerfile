@@ -15,7 +15,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o observability-server ./cmd/app
 
 # Stage 2: Run
-FROM gcr.io/distroless/static-debian12
+FROM busybox:latest
 
 WORKDIR /app
 COPY --from=builder /app/observability-server .
