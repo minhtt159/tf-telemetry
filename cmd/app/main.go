@@ -93,7 +93,13 @@ func runHealthcheck() int {
 	if url == "" {
 		url = "http://127.0.0.1:8080/healthz"
 	}
-	client := &http.Client{Timeout: 2 * time.Second}
+	timeout := 2 * time.Second
+	if v := os.Getenv("HEALTHCHECK_TIMEOUT"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d > 0 {
+			timeout = d
+		}
+	}
+	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if err != nil {
 		return 1
