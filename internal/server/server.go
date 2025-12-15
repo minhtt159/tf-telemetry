@@ -256,6 +256,21 @@ func (s *Service) rateLimitMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *Service) HTTPServer(cfg *config.Config) *http.Server {
 	handler := s.httpHandler()
 
@@ -264,6 +279,9 @@ func (s *Service) HTTPServer(cfg *config.Config) *http.Server {
 	if cfg.Server.BasicAuth.Enabled {
 		handler = basicAuthMiddleware(handler, cfg.Server.BasicAuth)
 	}
+
+	// Add CORS middleware for web clients
+	handler = corsMiddleware(handler)
 
 	return &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.HTTPPort),
