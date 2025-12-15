@@ -22,6 +22,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		os.Exit(runHealthcheck())
+	}
+
 	cfg, err := config.Load("config.yaml")
 	if err != nil {
 		panic(err)
@@ -82,4 +86,17 @@ func main() {
 		lis.Close()
 	}
 	log.Info("Shutdown complete")
+}
+
+func runHealthcheck() int {
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get("http://127.0.0.1:8080/healthz")
+	if err != nil {
+		return 1
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return 1
+	}
+	return 0
 }
