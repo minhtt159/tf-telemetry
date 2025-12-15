@@ -76,7 +76,10 @@ func installationIDHex(packet *pb.TelemetryPacket) string {
 
 func decodeRequestBody(r *http.Request, message proto.Message) error {
 	body, err := io.ReadAll(r.Body)
-	_ = r.Body.Close()
+	closeErr := r.Body.Close()
+	if err == nil && closeErr != nil {
+		err = closeErr
+	}
 	if err != nil {
 		return err
 	}
