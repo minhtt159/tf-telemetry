@@ -59,16 +59,21 @@ elasticsearch:
 
 ### Protocol
 
-The server accepts telemetry data via:
+The server accepts telemetry data via two protocols:
 
-**HTTP Endpoint**: `POST /v1/telemetry`
+**HTTP Endpoint**: `POST /v1/telemetry` (Port 8080)
 - Content-Type: `application/json`
 - Optional Basic Authentication
 - JSON payload matching protobuf schema
+- Used by the web demo client
 
-**gRPC Service**: `Collector.SendTelemetry`
+**gRPC Service**: `Collector.SendTelemetry` (Port 50051)
 - Service defined in `api/proto/telemetry.proto`
-- Supports optional basic authentication via metadata
+- Binary protobuf encoding (smaller packet size)
+- Optional basic authentication via metadata
+- Recommended for mobile SDKs and high-frequency telemetry
+- Package: `observability`
+- Method: `SendTelemetry(TelemetryPacket) returns (Ack)`
 
 ### Data Models
 

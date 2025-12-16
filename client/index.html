@@ -118,8 +118,11 @@
         <div class="section">
             <h2>Configuration</h2>
             <div class="config">
-                <label for="serverUrl">Server URL:</label>
+                <label for="serverUrl">Server URL (HTTP/JSON):</label>
                 <input type="text" id="serverUrl" value="http://localhost:8080">
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    💡 This demo uses HTTP/JSON. The server also supports gRPC on port 50051 for binary protobuf (smaller packet size).
+                </div>
                 
                 <label for="username">Username (if auth enabled):</label>
                 <input type="text" id="username" value="">

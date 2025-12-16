@@ -94,7 +94,9 @@ The JavaScript library generates realistic sample data:
 
 ## Protocol
 
-The client sends JSON payloads matching the protobuf schema to:
+The client currently uses HTTP/JSON for sending telemetry data:
+
+### HTTP/JSON Endpoint
 
 ```
 POST /v1/telemetry HTTP/1.1
@@ -110,7 +112,25 @@ Authorization: Basic <base64-encoded-credentials>
 }
 ```
 
-The server responds with:
+Response:
 ```json
 {"status":"accepted"}
 ```
+
+### gRPC Support
+
+The server also supports native gRPC on port 50051 for more efficient binary protocol:
+
+```
+Service: observability.Collector
+Method: SendTelemetry(TelemetryPacket) returns (Ack)
+Protocol: gRPC (protobuf binary)
+Port: 50051
+```
+
+**Benefits of gRPC:**
+- Smaller packet size (binary protobuf vs JSON)
+- Better performance for high-frequency telemetry
+- Native support in mobile SDKs (iOS, Android)
+
+**Note:** gRPC-Web support for browsers requires additional infrastructure (grpc-web proxy or envoy). The current web demo uses HTTP/JSON for simplicity.
