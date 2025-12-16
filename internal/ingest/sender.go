@@ -41,8 +41,12 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		return nil, status.Error(codes.InvalidArgument, "missing metadata")
 	}
 
-	// Validate packet size (1500 bytes = 1 MTU)
-	if err := validatePacketSize(packet, 1500); err != nil {
+	// Validate packet size - use configured value or default to 1500
+	maxPacketSize := s.cfg.Server.MaxPacketSizeBytes
+	if maxPacketSize == 0 {
+		maxPacketSize = 1500 // default: 1 MTU
+	}
+	if err := validatePacketSize(packet, maxPacketSize); err != nil {
 		s.logger.Warn("packet size exceeded", zap.Error(err))
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -57,6 +61,24 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	// Validate log entry context attributes
+	maxContextAttrs := s.cfg.Server.MaxContextAttrs
+	if maxContextAttrs == 0 {
+		maxContextAttrs = 6 // default
+	}
+	if packet.Logs != nil {
+		for _, entry := range packet.Logs.Entries {
+			if len(entry.GetContext()) > maxContextAttrs {
+				s.logger.Warn("log entry context exceeds maximum attributes",
+					zap.Int("count", len(entry.GetContext())),
+					zap.Int("max", maxContextAttrs))
+				return nil, status.Errorf(codes.InvalidArgument,
+					"log entry context has %d attributes, maximum allowed is %d",
+					len(entry.GetContext()), maxContextAttrs)
+			}
+		}
+	}
+
 	if packet.Metrics != nil {
 		for _, point := range packet.Metrics.Points {
 			doc := metricDocument(packet.Metadata, point)
@@ -65,13 +87,8 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 	}
 
 	if packet.Logs != nil {
-		maxContextAttrs := s.cfg.Logging.MaxContextAttrs
-		if maxContextAttrs == 0 {
-			maxContextAttrs = 6 // default
-		}
-		
 		for _, entry := range packet.Logs.Entries {
-			doc := logDocument(packet.Metadata, entry, maxContextAttrs)
+			doc := logDocument(packet.Metadata, entry)
 			s.indexAsync(ctx, s.cfg.Elastic.IndexLogs, doc)
 		}
 	}
@@ -124,22 +141,7 @@ func metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPoint) map[stri
 	return doc
 }
 
-func logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry, maxContextAttrs int) map[string]any {
-	// Limit context map to maxContextAttrs
-	context := entry.GetContext()
-	if len(context) > maxContextAttrs {
-		limited := make(map[string]string, maxContextAttrs)
-		count := 0
-		for k, v := range context {
-			if count >= maxContextAttrs {
-				break
-			}
-			limited[k] = v
-			count++
-		}
-		context = limited
-	}
-	
+func logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) map[string]any {
 	return map[string]any{
 		"timestamp":        entry.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
@@ -152,7 +154,7 @@ func logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry, maxContextAttr
 		"level":            entry.GetLevel().String(),
 		"tag":              entry.GetTag(),
 		"message":          entry.GetMessage(),
-		"context":          context,
+		"context":          entry.GetContext(),
 		"stack_trace":      entry.GetStackTrace(),
 	}
 }

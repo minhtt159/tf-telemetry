@@ -39,7 +39,7 @@ func TestMainCanSendTelemetry(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Elastic.IndexLogs = "logs-index"
 	cfg.Elastic.IndexMetrics = "metrics-index"
-	cfg.Logging.MaxContextAttrs = 6
+	cfg.Server.MaxContextAttrs = 6
 
 	sender := ingest.NewSender(zap.NewNop(), indexer, cfg)
 	svc := server.New(sender)

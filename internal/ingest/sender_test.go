@@ -46,7 +46,7 @@ func TestSendTelemetryIndexesMetricsAndLogs(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Elastic.IndexLogs = "logs"
 	cfg.Elastic.IndexMetrics = "metrics"
-	cfg.Logging.MaxContextAttrs = 6
+	cfg.Server.MaxContextAttrs = 6
 	sender := NewSender(zap.NewNop(), bi, cfg)
 
 	packet := &pb.TelemetryPacket{
@@ -178,7 +178,7 @@ func TestSendTelemetry_ContextMapLimit(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Elastic.IndexLogs = "logs"
 	cfg.Elastic.IndexMetrics = "metrics"
-	cfg.Logging.MaxContextAttrs = 3 // Limit to 3
+	cfg.Server.MaxContextAttrs = 3 // Limit to 3
 	sender := NewSender(zap.NewNop(), bi, cfg)
 
 	packet := &pb.TelemetryPacket{
@@ -199,8 +199,50 @@ func TestSendTelemetry_ContextMapLimit(t *testing.T) {
 						"key1": "val1",
 						"key2": "val2",
 						"key3": "val3",
-						"key4": "val4",
+						"key4": "val4", // Exceeds limit of 3
 						"key5": "val5",
+					},
+				},
+			},
+		},
+	}
+
+	// Should now reject the packet with too many context attributes
+	_, err := sender.SendTelemetry(context.Background(), packet)
+	if err == nil {
+		t.Fatal("expected error for too many context attributes")
+	}
+	if !strings.Contains(err.Error(), "context") {
+		t.Fatalf("expected error about context, got: %v", err)
+	}
+}
+
+func TestSendTelemetry_ContextMapWithinLimit(t *testing.T) {
+	bi := &stubBulkIndexer{}
+	cfg := &config.Config{}
+	cfg.Elastic.IndexLogs = "logs"
+	cfg.Elastic.IndexMetrics = "metrics"
+	cfg.Server.MaxContextAttrs = 3 // Limit to 3
+	sender := NewSender(zap.NewNop(), bi, cfg)
+
+	packet := &pb.TelemetryPacket{
+		Metadata: &pb.ClientMetadata{
+			Platform:         pb.Platform_ANDROID,
+			InstallationId:   makeUUIDv7(),
+			JourneyId:        makeUUIDv7(),
+			SdkVersionPacked: 3,
+		},
+		Logs: &pb.LogBatch{
+			Entries: []*pb.LogEntry{
+				{
+					ClientTimestampMs: 20,
+					Level:             pb.LogLevel_INFO,
+					Tag:               "test",
+					Message:           "test message",
+					Context: map[string]string{
+						"key1": "val1",
+						"key2": "val2",
+						"key3": "val3",
 					},
 				},
 			},
@@ -229,8 +271,8 @@ func TestSendTelemetry_ContextMapLimit(t *testing.T) {
 		t.Fatal("expected context to be a map")
 	}
 
-	if len(contextMap) > 3 {
-		t.Fatalf("expected context map to have at most 3 attributes, got %d", len(contextMap))
+	if len(contextMap) != 3 {
+		t.Fatalf("expected context map to have 3 attributes, got %d", len(contextMap))
 	}
 }
 
