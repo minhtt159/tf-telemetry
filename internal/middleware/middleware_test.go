@@ -764,3 +764,90 @@ func TestCorsMiddleware_OptionsRequest(t *testing.T) {
 		t.Fatal("expected CORS headers for OPTIONS request")
 	}
 }
+
+func TestCorsMiddleware_PrivateNetworkAccess_Preflight(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// This should not be called for OPTIONS requests
+		t.Fatal("handler should not be called for OPTIONS requests")
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	req.Header.Set("Access-Control-Request-Private-Network", "true")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for OPTIONS, got %d", w.Code)
+	}
+
+	if w.Header().Get("Access-Control-Allow-Private-Network") != "true" {
+		t.Fatalf("expected Access-Control-Allow-Private-Network: true, got %s",
+			w.Header().Get("Access-Control-Allow-Private-Network"))
+	}
+}
+
+func TestCorsMiddleware_PrivateNetworkAccess_ActualRequest(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	req.Header.Set("Access-Control-Request-Private-Network", "true")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	if w.Header().Get("Access-Control-Allow-Private-Network") != "true" {
+		t.Fatalf("expected Access-Control-Allow-Private-Network: true, got %s",
+			w.Header().Get("Access-Control-Allow-Private-Network"))
+	}
+}
+
+func TestCorsMiddleware_NoPrivateNetworkHeader(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	// Should not have Private Network header when not requested
+	if w.Header().Get("Access-Control-Allow-Private-Network") != "" {
+		t.Fatal("expected no Access-Control-Allow-Private-Network header when not requested")
+	}
+}

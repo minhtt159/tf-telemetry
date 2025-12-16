@@ -60,6 +60,13 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 			w.Header().Set("Access-Control-Allow-Headers", headersStr)
 		}
 
+		// Handle Private Network Access (PNA) for preflight and actual requests
+		// If the client sends Access-Control-Request-Private-Network header,
+		// respond with Access-Control-Allow-Private-Network
+		if r.Header.Get("Access-Control-Request-Private-Network") == "true" {
+			w.Header().Set("Access-Control-Allow-Private-Network", "true")
+		}
+
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
