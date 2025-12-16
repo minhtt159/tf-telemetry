@@ -69,4 +69,3 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 	})
 }
 
-
