@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -96,8 +97,8 @@ func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPo
 	doc := map[string]any{
 		"timestamp":        point.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
-		"installation_id":  metadata.GetInstallationId(),
-		"journey_id":       metadata.GetJourneyId(),
+		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
+		"journey_id":       hex.EncodeToString(metadata.GetJourneyId()),
 		"sdk_version":      metadata.GetSdkVersionPacked(),
 		"host_app_version": metadata.GetHostAppVersion(),
 		"host_app_name":    metadata.GetHostAppName(),
@@ -141,8 +142,8 @@ func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) m
 	return map[string]any{
 		"timestamp":        entry.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
-		"installation_id":  metadata.GetInstallationId(),
-		"journey_id":       metadata.GetJourneyId(),
+		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
+		"journey_id":       hex.EncodeToString(metadata.GetJourneyId()),
 		"sdk_version":      metadata.GetSdkVersionPacked(),
 		"host_app_version": metadata.GetHostAppVersion(),
 		"host_app_name":    metadata.GetHostAppName(),
@@ -255,10 +256,33 @@ func (s *Service) rateLimitMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
+func corsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
+	if !cfg.Enabled {
+		return next
+	}
+	
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow all origins for demo purposes. In production, configure specific allowed origins.
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		
+		// Check if origin is allowed
+		allowedOrigin := "*"
+		if len(cfg.AllowedOrigins) > 0 {
+			allowed := false
+			for _, allowedOrig := range cfg.AllowedOrigins {
+				if allowedOrig == "*" || allowedOrig == origin {
+					allowedOrigin = allowedOrig
+					allowed = true
+					break
+				}
+			}
+			if !allowed && origin != "" {
+				// Origin not in allowed list, don't set CORS headers
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		
@@ -280,8 +304,8 @@ func (s *Service) HTTPServer(cfg *config.Config) *http.Server {
 		handler = basicAuthMiddleware(handler, cfg.Server.BasicAuth)
 	}
 
-	// Add CORS middleware for web clients
-	handler = corsMiddleware(handler)
+	// Add CORS middleware for web clients (configurable)
+	handler = corsMiddleware(handler, cfg.Server.CORS)
 
 	return &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.HTTPPort),

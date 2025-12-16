@@ -121,7 +121,7 @@
                 <label for="serverUrl">Server URL (HTTP/JSON):</label>
                 <input type="text" id="serverUrl" value="http://localhost:8080">
                 <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    💡 This demo uses HTTP/JSON. The server also supports gRPC on port 50051 for binary protobuf (smaller packet size).
+                    💡 This demo uses HTTP/JSON with UUID v7 as bytes. The server also supports native gRPC on port 50051 for binary protobuf (smaller packet size). Packet size is shown after sending.
                 </div>
                 
                 <label for="username">Username (if auth enabled):</label>
@@ -195,7 +195,8 @@
             const config = getConfig();
             try {
                 const result = await telemetry.sendMetrics(config.serverUrl, config.username, config.password);
-                showStatus('sendStatus', result.message, result.success ? 'success' : 'error');
+                const sizeMsg = result.packetSize ? ` (${result.packetSize} bytes)` : '';
+                showStatus('sendStatus', result.message + sizeMsg, result.success ? 'success' : 'error');
             } catch (error) {
                 showStatus('sendStatus', `Error: ${error.message}`, 'error');
             }
@@ -206,7 +207,8 @@
             const config = getConfig();
             try {
                 const result = await telemetry.sendLogs(config.serverUrl, config.username, config.password);
-                showStatus('sendStatus', result.message, result.success ? 'success' : 'error');
+                const sizeMsg = result.packetSize ? ` (${result.packetSize} bytes)` : '';
+                showStatus('sendStatus', result.message + sizeMsg, result.success ? 'success' : 'error');
             } catch (error) {
                 showStatus('sendStatus', `Error: ${error.message}`, 'error');
             }
@@ -217,7 +219,8 @@
             const config = getConfig();
             try {
                 const result = await telemetry.sendBoth(config.serverUrl, config.username, config.password);
-                showStatus('sendStatus', result.message, result.success ? 'success' : 'error');
+                const sizeMsg = result.packetSize ? ` (${result.packetSize} bytes)` : '';
+                showStatus('sendStatus', result.message + sizeMsg, result.success ? 'success' : 'error');
             } catch (error) {
                 showStatus('sendStatus', `Error: ${error.message}`, 'error');
             }

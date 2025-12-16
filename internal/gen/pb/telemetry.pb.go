@@ -146,9 +146,9 @@ func (x *TelemetryPacket) GetLogs() *LogBatch {
 type ClientMetadata struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Platform Platform               `protobuf:"varint,1,opt,name=platform,proto3,enum=observability.Platform" json:"platform,omitempty"`
-	// Identifiers (UUID v7 strings)
-	InstallationId *string `protobuf:"bytes,2,opt,name=installation_id,json=installationId,proto3,oneof" json:"installation_id,omitempty"`
-	JourneyId      *string `protobuf:"bytes,3,opt,name=journey_id,json=journeyId,proto3,oneof" json:"journey_id,omitempty"`
+	// Identifiers (UUID v7 as bytes)
+	InstallationId []byte `protobuf:"bytes,2,opt,name=installation_id,json=installationId,proto3,oneof" json:"installation_id,omitempty"`
+	JourneyId      []byte `protobuf:"bytes,3,opt,name=journey_id,json=journeyId,proto3,oneof" json:"journey_id,omitempty"`
 	// Versions
 	SdkVersionPacked uint32              `protobuf:"varint,4,opt,name=sdk_version_packed,json=sdkVersionPacked,proto3" json:"sdk_version_packed,omitempty"`
 	HostAppVersion   string              `protobuf:"bytes,5,opt,name=host_app_version,json=hostAppVersion,proto3" json:"host_app_version,omitempty"`
@@ -195,18 +195,18 @@ func (x *ClientMetadata) GetPlatform() Platform {
 	return Platform_PLATFORM_UNKNOWN
 }
 
-func (x *ClientMetadata) GetInstallationId() string {
-	if x != nil && x.InstallationId != nil {
-		return *x.InstallationId
+func (x *ClientMetadata) GetInstallationId() []byte {
+	if x != nil {
+		return x.InstallationId
 	}
-	return ""
+	return nil
 }
 
-func (x *ClientMetadata) GetJourneyId() string {
-	if x != nil && x.JourneyId != nil {
-		return *x.JourneyId
+func (x *ClientMetadata) GetJourneyId() []byte {
+	if x != nil {
+		return x.JourneyId
 	}
-	return ""
+	return nil
 }
 
 func (x *ClientMetadata) GetSdkVersionPacked() uint32 {
@@ -256,9 +256,9 @@ const file_telemetry_proto_rawDesc = "" +
 	"\x05_logs\"\x9b\x03\n" +
 	"\x0eClientMetadata\x123\n" +
 	"\bplatform\x18\x01 \x01(\x0e2\x17.observability.PlatformR\bplatform\x12,\n" +
-	"\x0finstallation_id\x18\x02 \x01(\tH\x00R\x0einstallationId\x88\x01\x01\x12\"\n" +
+	"\x0finstallation_id\x18\x02 \x01(\fH\x00R\x0einstallationId\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"journey_id\x18\x03 \x01(\tH\x01R\tjourneyId\x88\x01\x01\x12,\n" +
+	"journey_id\x18\x03 \x01(\fH\x01R\tjourneyId\x88\x01\x01\x12,\n" +
 	"\x12sdk_version_packed\x18\x04 \x01(\rR\x10sdkVersionPacked\x12(\n" +
 	"\x10host_app_version\x18\x05 \x01(\tR\x0ehostAppVersion\x12\"\n" +
 	"\rhost_app_name\x18\x06 \x01(\tR\vhostAppName\x12O\n" +

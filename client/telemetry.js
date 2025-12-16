@@ -8,8 +8,8 @@ const telemetry = (function() {
     const STORAGE_KEY = 'telemetry_queue';
     const MAX_QUEUE_SIZE = 100;
 
-    // Generate UUID v7 (time-ordered UUID with millisecond precision)
-    function generateUUIDv7() {
+    // Generate UUID v7 (time-ordered UUID with millisecond precision) as string
+    function generateUUIDv7String() {
         const timestamp = Date.now();
         const randomBytes = new Uint8Array(10);
         crypto.getRandomValues(randomBytes);
@@ -32,18 +32,35 @@ const telemetry = (function() {
         return uuid;
     }
 
-    // Generate client metadata
+    // Convert UUID string to base64 bytes (for protobuf)
+    function uuidStringToBase64(uuidStr) {
+        // Remove hyphens and convert hex to bytes
+        const hex = uuidStr.replace(/-/g, '');
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        // Convert to base64
+        return btoa(String.fromCharCode.apply(null, bytes));
+    }
+
+    // Convert UUID string to bytes array (for display)
+    function uuidStringToBytes(uuidStr) {
+        const hex = uuidStr.replace(/-/g, '');
+        return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    }
+
+    // Generate client metadata (with bytes for server, string for display)
     function generateMetadata() {
-        const installationId = localStorage.getItem('installation_id') || generateUUIDv7();
-        localStorage.setItem('installation_id', installationId);
+        const installationIdStr = localStorage.getItem('installation_id') || generateUUIDv7String();
+        localStorage.setItem('installation_id', installationIdStr);
         
-        const journeyId = sessionStorage.getItem('journey_id') || generateUUIDv7();
-        sessionStorage.setItem('journey_id', journeyId);
+        const journeyIdStr = sessionStorage.getItem('journey_id') || generateUUIDv7String();
+        sessionStorage.setItem('journey_id', journeyIdStr);
 
         return {
             platform: 'WEB',
-            installation_id: installationId,
-            journey_id: journeyId,
+            installation_id: uuidStringToBase64(installationIdStr),
+            journey_id: uuidStringToBase64(journeyIdStr),
+            _installation_id_display: installationIdStr,  // For UI display
+            _journey_id_display: journeyIdStr,
             sdk_version_packed: 10001, // version 1.0.1
             host_app_version: '1.0.0',
             host_app_name: 'telemetry-demo',
@@ -193,8 +210,11 @@ const telemetry = (function() {
         return { entries };
     }
 
-    // Send telemetry packet to server
-    async function sendTelemetryPacket(serverUrl, username, password, packet) {
+    // Send telemetry packet to server (useGrpc parameter to switch protocols)
+    async function sendTelemetryPacket(serverUrl, username, password, packet, useGrpc) {
+        // For now, we only support HTTP/JSON
+        // Full gRPC-web support requires grpc-web library and generated code
+        // But we document that native gRPC is available on port 50051
         const endpoint = serverUrl + '/v1/telemetry';
         
         const headers = {
@@ -207,11 +227,14 @@ const telemetry = (function() {
             headers['Authorization'] = 'Basic ' + credentials;
         }
 
+        const body = JSON.stringify(packet);
+        const bodySize = new TextEncoder().encode(body).length;
+
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: headers,
-                body: JSON.stringify(packet)
+                body: body
             });
 
             if (!response.ok) {
@@ -221,7 +244,8 @@ const telemetry = (function() {
 
             return {
                 success: true,
-                message: 'Telemetry sent successfully!'
+                message: 'Telemetry sent successfully!',
+                packetSize: bodySize
             };
         } catch (error) {
             // Queue packet for retry if server is unavailable
