@@ -36,7 +36,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer log.Sync()
+	defer func() {
+		if err := log.Sync(); err != nil {
+			panic(err)
+		}
+	}()
 
 	_, bi, err := indexer.New(cfg, log)
 	if err != nil {
@@ -81,10 +85,14 @@ func main() {
 		log.Error("Error closing bulk indexer", zap.Error(err))
 	}
 
-	httpServer.Shutdown(ctx)
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Error("Error shutting down HTTP server", zap.Error(err))
+	}
 	grpcServer.GracefulStop()
 	if lis != nil {
-		lis.Close()
+		if err := lis.Close(); err != nil {
+			log.Fatal("Error closing gRPC listener", zap.Error(err))
+		}
 	}
 	log.Info("Shutdown complete")
 }
@@ -113,7 +121,11 @@ func runHealthcheck(cfg *config.Config) int {
 	if err != nil {
 		return 1
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return 1
 	}
