@@ -61,24 +61,6 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	// Validate log entry context attributes
-	maxContextAttrs := s.cfg.Server.MaxContextAttrs
-	if maxContextAttrs == 0 {
-		maxContextAttrs = 6 // default
-	}
-	if packet.Logs != nil {
-		for _, entry := range packet.Logs.Entries {
-			if len(entry.GetContext()) > maxContextAttrs {
-				s.logger.Warn("log entry context exceeds maximum attributes",
-					zap.Int("count", len(entry.GetContext())),
-					zap.Int("max", maxContextAttrs))
-				return nil, status.Errorf(codes.InvalidArgument,
-					"log entry context has %d attributes, maximum allowed is %d",
-					len(entry.GetContext()), maxContextAttrs)
-			}
-		}
-	}
-
 	if packet.Metrics != nil {
 		for _, point := range packet.Metrics.Points {
 			doc := metricDocument(packet.Metadata, point)
@@ -87,7 +69,22 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 	}
 
 	if packet.Logs != nil {
+		maxContextAttrs := s.cfg.Server.MaxContextAttrs
+		if maxContextAttrs == 0 {
+			maxContextAttrs = 6 // default
+		}
+		
 		for _, entry := range packet.Logs.Entries {
+			// Validate context attributes before processing
+			if len(entry.GetContext()) > maxContextAttrs {
+				s.logger.Warn("log entry context exceeds maximum attributes",
+					zap.Int("count", len(entry.GetContext())),
+					zap.Int("max", maxContextAttrs))
+				return nil, status.Errorf(codes.InvalidArgument,
+					"log entry context has %d attributes, maximum allowed is %d",
+					len(entry.GetContext()), maxContextAttrs)
+			}
+			
 			doc := logDocument(packet.Metadata, entry)
 			s.indexAsync(ctx, s.cfg.Elastic.IndexLogs, doc)
 		}
