@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -97,8 +96,8 @@ func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPo
 	doc := map[string]any{
 		"timestamp":        point.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
-		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
-		"journey_id":       hex.EncodeToString(metadata.GetJourneyId()),
+		"installation_id":  metadata.GetInstallationId(),
+		"journey_id":       metadata.GetJourneyId(),
 		"sdk_version":      metadata.GetSdkVersionPacked(),
 		"host_app_version": metadata.GetHostAppVersion(),
 		"host_app_name":    metadata.GetHostAppName(),
@@ -142,8 +141,8 @@ func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) m
 	return map[string]any{
 		"timestamp":        entry.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
-		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
-		"journey_id":       hex.EncodeToString(metadata.GetJourneyId()),
+		"installation_id":  metadata.GetInstallationId(),
+		"journey_id":       metadata.GetJourneyId(),
 		"sdk_version":      metadata.GetSdkVersionPacked(),
 		"host_app_version": metadata.GetHostAppVersion(),
 		"host_app_name":    metadata.GetHostAppName(),

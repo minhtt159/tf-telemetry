@@ -31,9 +31,9 @@ message TelemetryPacket {
 message ClientMetadata {
   Platform platform = 1;
 
-  // Identifiers
-  optional bytes installation_id = 2;
-  optional bytes journey_id = 3;
+  // Identifiers (UUID v7 strings)
+  optional string installation_id = 2;
+  optional string journey_id = 3;
 
   // Versions
   uint32 sdk_version_packed = 4;

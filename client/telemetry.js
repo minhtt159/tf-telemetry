@@ -8,31 +8,41 @@ const telemetry = (function() {
     const STORAGE_KEY = 'telemetry_queue';
     const MAX_QUEUE_SIZE = 100;
 
-    // Generate a random UUID-like identifier
-    function generateId() {
-        const array = new Uint8Array(16);
-        crypto.getRandomValues(array);
-        return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    // Convert hex string to base64 for protobuf bytes fields
-    function hexToBase64(hexString) {
-        const bytes = new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-        return btoa(String.fromCharCode.apply(null, bytes));
+    // Generate UUID v7 (time-ordered UUID with millisecond precision)
+    function generateUUIDv7() {
+        const timestamp = Date.now();
+        const randomBytes = new Uint8Array(10);
+        crypto.getRandomValues(randomBytes);
+        
+        // UUID v7 format: tttttttt-tttt-7xxx-yxxx-xxxxxxxxxxxx
+        // where t = timestamp, x = random, y = variant bits
+        const timestampHex = timestamp.toString(16).padStart(12, '0');
+        const randomHex = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Build UUID v7: timestamp (48 bits) + version (4 bits) + random (12 bits) + variant (2 bits) + random (62 bits)
+        const uuid = [
+            timestampHex.slice(0, 8),
+            timestampHex.slice(8, 12),
+            '7' + randomHex.slice(0, 3),  // version 7
+            ((parseInt(randomHex.slice(3, 5), 16) & 0x3f) | 0x80).toString(16).padStart(2, '0') + randomHex.slice(5, 7),
+            randomHex.slice(7, 19)
+        ].join('-');
+        
+        return uuid;
     }
 
     // Generate client metadata
     function generateMetadata() {
-        const installationId = localStorage.getItem('installation_id') || generateId();
+        const installationId = localStorage.getItem('installation_id') || generateUUIDv7();
         localStorage.setItem('installation_id', installationId);
         
-        const journeyId = sessionStorage.getItem('journey_id') || generateId();
+        const journeyId = sessionStorage.getItem('journey_id') || generateUUIDv7();
         sessionStorage.setItem('journey_id', journeyId);
 
         return {
             platform: 'WEB',
-            installation_id: hexToBase64(installationId),
-            journey_id: hexToBase64(journeyId),
+            installation_id: installationId,
+            journey_id: journeyId,
             sdk_version_packed: 10001, // version 1.0.1
             host_app_version: '1.0.0',
             host_app_name: 'telemetry-demo',

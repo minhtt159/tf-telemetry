@@ -18,6 +18,10 @@ import (
 	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
 )
 
+func stringPtr(s string) *string {
+	return &s
+}
+
 type capturedItem struct {
 	index string
 	body  []byte
@@ -54,8 +58,8 @@ func TestSendTelemetryIndexesMetricsAndLogs(t *testing.T) {
 	packet := &pb.TelemetryPacket{
 		Metadata: &pb.ClientMetadata{
 			Platform:         pb.Platform_ANDROID,
-			InstallationId:   []byte{0x01},
-			JourneyId:        []byte{0x02},
+			InstallationId:   stringPtr("01927d98-5c4a-7000-8000-123456789abc"),
+			JourneyId:        stringPtr("01927d98-5c4a-7000-8001-123456789def"),
 			SdkVersionPacked: 3,
 			HostAppVersion:   "1.0.0",
 			HostAppName:      "app",
@@ -88,7 +92,7 @@ func TestSendTelemetryIndexesMetricsAndLogs(t *testing.T) {
 	if err := json.Unmarshal(bi.items[0].body, &doc); err != nil {
 		t.Fatalf("failed to unmarshal metric doc: %v", err)
 	}
-	if doc["installation_id"] != "01" {
+	if doc["installation_id"] != "01927d98-5c4a-7000-8000-123456789abc" {
 		t.Fatalf("unexpected installation_id: %v", doc["installation_id"])
 	}
 }
