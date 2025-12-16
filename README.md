@@ -2,9 +2,26 @@
 
 A telemetry collection server for mobile and web applications, with support for metrics and logs ingestion via gRPC and HTTP.
 
-## Quick Start with Docker Compose
+## Build and test
 
-The easiest way to try the telemetry system is using the provided docker-compose stack:
+```bash
+make build   # builds ./bin/tf-telemetry
+make test    # runs go test ./...
+```
+
+## Container image
+
+Build the image and run it locally:
+
+```bash
+docker build -f build/Dockerfile -t tf-telemetry:local .
+docker run --rm -p 8080:8080 -p 50051:50051 \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  tf-telemetry:local
+```
+
+
+## Quick Start with Docker Compose
 
 ```bash
 docker compose up
@@ -12,6 +29,8 @@ docker compose up
 
 This will start:
 - **Telemetry Server** on ports 8080 (HTTP) and 50051 (gRPC)
+  - The HTTP endpoint accepts telemetry at `POST /v1/telemetry` and basic health is available at `/healthz`.
+  - Enable basic auth in `config.yaml` and provide credentials with `curl -u user:pass ...` when needed.
 - **Web Client Demo** on port 3000
 
 Then open your browser to: **http://localhost:3000**
@@ -131,7 +150,3 @@ See `config.yaml` for available options:
 - Rate limiting settings
 - Elasticsearch connection and indexing options
 - Logging level
-
-## License
-
-[Add license information]

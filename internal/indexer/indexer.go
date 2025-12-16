@@ -1,3 +1,4 @@
+// Package indexer provides functionality to create and configure an Elasticsearch client and bulk
 package indexer
 
 import (

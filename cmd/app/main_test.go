@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	"github.com/elastic/go-elasticsearch/v8/esutil"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
 	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
+	"github.com/threatfabric-devops/tf-telemetry/internal/ingest"
 	"github.com/threatfabric-devops/tf-telemetry/internal/server"
 )
 
@@ -26,17 +28,29 @@ func (m *recordingBulkIndexer) Close(context.Context) error { return nil }
 
 func (m *recordingBulkIndexer) Stats() esutil.BulkIndexerStats { return esutil.BulkIndexerStats{} }
 
+func makeUUIDv7() []byte {
+	u := uuid.Must(uuid.NewV7())
+	b, _ := u.MarshalBinary()
+	return b
+}
+
 func TestMainCanSendTelemetry(t *testing.T) {
 	indexer := &recordingBulkIndexer{}
 	cfg := &config.Config{}
 	cfg.Elastic.IndexLogs = "logs-index"
 	cfg.Elastic.IndexMetrics = "metrics-index"
+	cfg.Server.MaxContextAttrs = 6
 
-	svc := server.New(zap.NewNop(), indexer, cfg)
+	sender := ingest.NewSender(zap.NewNop(), indexer, cfg)
+	svc := server.New(sender)
 	packet := &pb.TelemetryPacket{
-		Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID},
-		Metrics:  &pb.MetricBatch{Points: []*pb.MetricPoint{{}}},
-		Logs:     &pb.LogBatch{Entries: []*pb.LogEntry{{Message: "ok"}}},
+		Metadata: &pb.ClientMetadata{
+			Platform:       pb.Platform_ANDROID,
+			InstallationId: makeUUIDv7(),
+			JourneyId:      makeUUIDv7(),
+		},
+		Metrics: &pb.MetricBatch{Points: []*pb.MetricPoint{{}}},
+		Logs:    &pb.LogBatch{Entries: []*pb.LogEntry{{Message: "ok"}}},
 	}
 	if _, err := svc.SendTelemetry(context.Background(), packet); err != nil {
 		t.Fatalf("SendTelemetry returned error: %v", err)

@@ -12,8 +12,12 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
+	"github.com/threatfabric-devops/tf-telemetry/internal/grpcserver"
+	"github.com/threatfabric-devops/tf-telemetry/internal/httpserver"
 	"github.com/threatfabric-devops/tf-telemetry/internal/indexer"
+	"github.com/threatfabric-devops/tf-telemetry/internal/ingest"
 	"github.com/threatfabric-devops/tf-telemetry/internal/logger"
+	"github.com/threatfabric-devops/tf-telemetry/internal/middleware"
 	"github.com/threatfabric-devops/tf-telemetry/internal/server"
 )
 
@@ -23,20 +27,36 @@ func main() {
 		panic(err)
 	}
 
-	log, err := logger.New(cfg.Logging.Level)
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		os.Exit(httpserver.RunHealthcheck(cfg))
+	}
+
+	log, err := logger.NewWithConfig(logger.Config{
+		Level:            cfg.Logging.Level,
+		Encoding:         cfg.Logging.Encoding,
+		OutputPaths:      cfg.Logging.OutputPaths,
+		ErrorOutputPaths: cfg.Logging.ErrorOutputPaths,
+	})
 	if err != nil {
 		panic(err)
 	}
-	defer log.Sync()
+	defer func() {
+		if err := log.Sync(); err != nil {
+			panic(err)
+		}
+	}()
 
 	_, bi, err := indexer.New(cfg, log)
 	if err != nil {
 		log.Fatal("failed to create indexer", zap.Error(err))
 	}
 
-	svc := server.New(log, bi, cfg)
+	sender := ingest.NewSender(log, bi, cfg)
+	svc := server.New(sender)
+	limiter := middleware.NewRateLimiter(cfg.Server.RateLimit)
 
-	grpcServer, lis, err := svc.StartGRPC(cfg)
+	grpcServer := grpcserver.New(cfg, svc, limiter)
+	lis, addr, err := grpcserver.Listen(cfg)
 	if err != nil {
 		log.Fatal("failed to start gRPC server", zap.Error(err))
 	}
@@ -47,7 +67,9 @@ func main() {
 		}
 	}()
 
-	httpServer := svc.HTTPServer(cfg)
+	log.Info("gRPC server listening", zap.String("addr", addr))
+
+	httpServer := httpserver.New(cfg, svc, limiter)
 	go func() {
 		log.Info("HTTP server listening", zap.String("addr", httpServer.Addr))
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -67,10 +89,14 @@ func main() {
 		log.Error("Error closing bulk indexer", zap.Error(err))
 	}
 
-	httpServer.Shutdown(ctx)
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Error("Error shutting down HTTP server", zap.Error(err))
+	}
 	grpcServer.GracefulStop()
 	if lis != nil {
-		lis.Close()
+		if err := lis.Close(); err != nil {
+			log.Fatal("Error closing gRPC listener", zap.Error(err))
+		}
 	}
 	log.Info("Shutdown complete")
 }
