@@ -10,6 +10,10 @@ server:
     enabled: false
     requests_per_second: 10
     burst: 20
+  cors:
+    enabled: false
+    allowed_origins:
+      - "*"
   max_packet_size_bytes: 1500 # Maximum packet size (1 MTU)
   max_context_attributes: 6 # Maximum context attributes per log entry
 
