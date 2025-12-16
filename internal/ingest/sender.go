@@ -6,11 +6,14 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	"github.com/elastic/go-elasticsearch/v8/esutil"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
 	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
@@ -38,6 +41,22 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		return nil, status.Error(codes.InvalidArgument, "missing metadata")
 	}
 
+	// Validate packet size (1500 bytes = 1 MTU)
+	if err := validatePacketSize(packet, 1500); err != nil {
+		s.logger.Warn("packet size exceeded", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	// Validate UUIDs
+	if err := validateUUIDv7(packet.Metadata.GetInstallationId(), "installation_id"); err != nil {
+		s.logger.Warn("invalid installation_id", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	if err := validateUUIDv7(packet.Metadata.GetJourneyId(), "journey_id"); err != nil {
+		s.logger.Warn("invalid journey_id", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
 	if packet.Metrics != nil {
 		for _, point := range packet.Metrics.Points {
 			doc := metricDocument(packet.Metadata, point)
@@ -46,8 +65,13 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 	}
 
 	if packet.Logs != nil {
+		maxContextAttrs := s.cfg.Logging.MaxContextAttrs
+		if maxContextAttrs == 0 {
+			maxContextAttrs = 6 // default
+		}
+		
 		for _, entry := range packet.Logs.Entries {
-			doc := logDocument(packet.Metadata, entry)
+			doc := logDocument(packet.Metadata, entry, maxContextAttrs)
 			s.indexAsync(ctx, s.cfg.Elastic.IndexLogs, doc)
 		}
 	}
@@ -100,7 +124,22 @@ func metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPoint) map[stri
 	return doc
 }
 
-func logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) map[string]any {
+func logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry, maxContextAttrs int) map[string]any {
+	// Limit context map to maxContextAttrs
+	context := entry.GetContext()
+	if len(context) > maxContextAttrs {
+		limited := make(map[string]string, maxContextAttrs)
+		count := 0
+		for k, v := range context {
+			if count >= maxContextAttrs {
+				break
+			}
+			limited[k] = v
+			count++
+		}
+		context = limited
+	}
+	
 	return map[string]any{
 		"timestamp":        entry.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
@@ -113,7 +152,7 @@ func logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) map[string]any
 		"level":            entry.GetLevel().String(),
 		"tag":              entry.GetTag(),
 		"message":          entry.GetMessage(),
-		"context":          entry.GetContext(),
+		"context":          context,
 		"stack_trace":      entry.GetStackTrace(),
 	}
 }
@@ -148,4 +187,45 @@ func (s *Sender) indexAsync(ctx context.Context, index string, doc map[string]an
 	if err != nil {
 		s.logger.Error("Failed to add to indexer", zap.Error(err))
 	}
+}
+
+// validateUUIDv7 checks if the given byte slice is a valid UUID v7.
+func validateUUIDv7(data []byte, fieldName string) error {
+	if len(data) == 0 {
+		return fmt.Errorf("%s is required", fieldName)
+	}
+	
+	if len(data) != 16 {
+		return fmt.Errorf("%s must be 16 bytes, got %d", fieldName, len(data))
+	}
+	
+	// Parse as UUID
+	u, err := uuid.FromBytes(data)
+	if err != nil {
+		return fmt.Errorf("invalid %s: %w", fieldName, err)
+	}
+	
+	// Check if it's UUID v7 by examining the version bits
+	// UUID v7 has version 7 in the most significant 4 bits of the 7th byte (index 6)
+	version := (data[6] & 0xf0) >> 4
+	if version != 7 {
+		return fmt.Errorf("%s must be UUID v7, got version %d (UUID: %s)", fieldName, version, u.String())
+	}
+	
+	// Check variant bits (should be 10xx in the most significant bits of the 9th byte)
+	variant := (data[8] & 0xc0) >> 6
+	if variant != 2 { // Variant 10xx in binary = 2 in decimal
+		return fmt.Errorf("%s has invalid UUID variant", fieldName)
+	}
+	
+	return nil
+}
+
+// validatePacketSize checks if the packet size exceeds the maximum allowed size.
+func validatePacketSize(packet *pb.TelemetryPacket, maxSize int) error {
+	size := proto.Size(packet)
+	if size > maxSize {
+		return fmt.Errorf("packet size %d bytes exceeds maximum %d bytes", size, maxSize)
+	}
+	return nil
 }
