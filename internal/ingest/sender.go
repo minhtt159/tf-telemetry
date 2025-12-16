@@ -73,7 +73,7 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		if maxContextAttrs == 0 {
 			maxContextAttrs = 6 // default
 		}
-		
+
 		for _, entry := range packet.Logs.Entries {
 			// Validate context attributes before processing
 			if len(entry.GetContext()) > maxContextAttrs {
@@ -84,7 +84,7 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 					"log entry context has %d attributes, maximum allowed is %d",
 					len(entry.GetContext()), maxContextAttrs)
 			}
-			
+
 			doc := logDocument(packet.Metadata, entry)
 			s.indexAsync(ctx, s.cfg.Elastic.IndexLogs, doc)
 		}
@@ -193,30 +193,30 @@ func validateUUIDv7(data []byte, fieldName string) error {
 	if len(data) == 0 {
 		return fmt.Errorf("%s is required", fieldName)
 	}
-	
+
 	if len(data) != 16 {
 		return fmt.Errorf("%s must be 16 bytes, got %d", fieldName, len(data))
 	}
-	
+
 	// Parse as UUID
 	u, err := uuid.FromBytes(data)
 	if err != nil {
 		return fmt.Errorf("invalid %s: %w", fieldName, err)
 	}
-	
+
 	// Check if it's UUID v7 by examining the version bits
 	// UUID v7 has version 7 in the most significant 4 bits of the 7th byte (index 6)
 	version := (data[6] & 0xf0) >> 4
 	if version != 7 {
 		return fmt.Errorf("%s must be UUID v7, got version %d (UUID: %s)", fieldName, version, u.String())
 	}
-	
+
 	// Check variant bits (should be 10xx in the most significant bits of the 9th byte)
 	variant := (data[8] & 0xc0) >> 6
 	if variant != 2 { // Variant 10xx in binary = 2 in decimal
 		return fmt.Errorf("%s has invalid UUID variant", fieldName)
 	}
-	
+
 	return nil
 }
 

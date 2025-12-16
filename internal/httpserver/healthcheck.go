@@ -24,14 +24,14 @@ func RunHealthcheck(cfg *config.Config) int {
 		}
 		url = fmt.Sprintf("http://%s:%d/healthz", host, port)
 	}
-	
+
 	timeout := 2 * time.Second
 	if v := os.Getenv("HEALTHCHECK_TIMEOUT"); v != "" {
 		if d, err := time.ParseDuration(v); err == nil && d > 0 {
 			timeout = d
 		}
 	}
-	
+
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if err != nil {
@@ -39,10 +39,10 @@ func RunHealthcheck(cfg *config.Config) int {
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			// Ignore close errors in healthcheck
+			fmt.Printf("error closing healthcheck response body: %v\n", err)
 		}
 	}()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return 1
 	}

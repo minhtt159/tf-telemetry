@@ -31,7 +31,7 @@ func TestNewWithConfig_JSONEncoding(t *testing.T) {
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
-	
+
 	logger, err := NewWithConfig(cfg)
 	if err != nil {
 		t.Fatalf("NewWithConfig() error = %v", err)
@@ -48,7 +48,7 @@ func TestNewWithConfig_ConsoleEncoding(t *testing.T) {
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
-	
+
 	logger, err := NewWithConfig(cfg)
 	if err != nil {
 		t.Fatalf("NewWithConfig() error = %v", err)
@@ -65,7 +65,7 @@ func TestNewWithConfig_CustomPaths(t *testing.T) {
 		OutputPaths:      []string{"/dev/null"},
 		ErrorOutputPaths: []string{"/dev/null"},
 	}
-	
+
 	logger, err := NewWithConfig(cfg)
 	if err != nil {
 		t.Fatalf("NewWithConfig() error = %v", err)
@@ -73,14 +73,14 @@ func TestNewWithConfig_CustomPaths(t *testing.T) {
 	if logger == nil {
 		t.Fatal("expected non-nil logger")
 	}
-	
+
 	// Test that logger can write without error
 	logger.Info("test message", zap.String("key", "value"))
 }
 
 func TestNewWithConfig_AllLogLevels(t *testing.T) {
 	levels := []string{"debug", "info", "warn", "error"}
-	
+
 	for _, level := range levels {
 		t.Run(level, func(t *testing.T) {
 			cfg := Config{
@@ -89,7 +89,7 @@ func TestNewWithConfig_AllLogLevels(t *testing.T) {
 				OutputPaths:      []string{"stdout"},
 				ErrorOutputPaths: []string{"stderr"},
 			}
-			
+
 			logger, err := NewWithConfig(cfg)
 			if err != nil {
 				t.Fatalf("NewWithConfig() error = %v for level %s", err, level)
@@ -105,7 +105,7 @@ func TestNewWithConfig_DefaultsWhenEmpty(t *testing.T) {
 	cfg := Config{
 		Level: "info",
 	}
-	
+
 	logger, err := NewWithConfig(cfg)
 	if err != nil {
 		t.Fatalf("NewWithConfig() error = %v", err)
@@ -122,15 +122,15 @@ func TestNewWithConfig_EncoderConfig(t *testing.T) {
 		OutputPaths:      []string{"/dev/null"},
 		ErrorOutputPaths: []string{"/dev/null"},
 	}
-	
+
 	logger, err := NewWithConfig(cfg)
 	if err != nil {
 		t.Fatalf("NewWithConfig() error = %v", err)
 	}
-	
+
 	// Verify logger can be used
 	logger.Info("test", zap.String("field", "value"))
-	
+
 	// Test with JSON encoding
 	cfg.Encoding = "json"
 	logger, err = NewWithConfig(cfg)
@@ -143,7 +143,7 @@ func TestNewWithConfig_EncoderConfig(t *testing.T) {
 func TestNew_BackwardCompatibility(t *testing.T) {
 	// Ensure old API still works
 	levels := []string{"debug", "info", "warn", "error"}
-	
+
 	for _, level := range levels {
 		logger, err := New(level)
 		if err != nil {
@@ -167,7 +167,7 @@ func TestNewWithConfig_UsesLevelCorrectly(t *testing.T) {
 		{"warn level logs warn and above", "warn", false, true},
 		{"error level logs only error", "error", false, false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := Config{
@@ -176,14 +176,14 @@ func TestNewWithConfig_UsesLevelCorrectly(t *testing.T) {
 				OutputPaths:      []string{"/dev/null"},
 				ErrorOutputPaths: []string{"/dev/null"},
 			}
-			
+
 			logger, err := NewWithConfig(cfg)
 			if err != nil {
 				t.Fatalf("NewWithConfig() error = %v", err)
 			}
-			
+
 			core := logger.Core()
-			
+
 			if tt.shouldLogInfo {
 				if !core.Enabled(zapcore.InfoLevel) {
 					t.Errorf("expected Info level to be enabled for level %s", tt.level)
@@ -193,7 +193,7 @@ func TestNewWithConfig_UsesLevelCorrectly(t *testing.T) {
 					t.Errorf("expected Info level to be disabled for level %s", tt.level)
 				}
 			}
-			
+
 			if tt.shouldLogWarn {
 				if !core.Enabled(zapcore.WarnLevel) {
 					t.Errorf("expected Warn level to be enabled for level %s", tt.level)
