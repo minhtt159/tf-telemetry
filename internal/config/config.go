@@ -38,7 +38,11 @@ type Config struct {
 		FlushInterval int      `mapstructure:"flush_interval_seconds"`
 	} `mapstructure:"elasticsearch"`
 	Logging struct {
-		Level string `mapstructure:"level"`
+		Level            string   `mapstructure:"level"`
+		Encoding         string   `mapstructure:"encoding"`
+		OutputPaths      []string `mapstructure:"output_paths"`
+		ErrorOutputPaths []string `mapstructure:"error_output_paths"`
+		MaxContextAttrs  int      `mapstructure:"max_context_attributes"`
 	} `mapstructure:"logging"`
 }
 

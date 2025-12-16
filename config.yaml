@@ -23,3 +23,9 @@ elasticsearch:
 
 logging:
   level: "info" # debug, info, warn, error
+  encoding: "json" # json or console
+  output_paths:
+    - "stdout"
+  error_output_paths:
+    - "stderr"
+  max_context_attributes: 6 # Maximum number of context attributes per log entry

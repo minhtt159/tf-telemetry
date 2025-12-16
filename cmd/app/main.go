@@ -32,7 +32,12 @@ func main() {
 		os.Exit(runHealthcheck(cfg))
 	}
 
-	log, err := logger.New(cfg.Logging.Level)
+	log, err := logger.NewWithConfig(logger.Config{
+		Level:            cfg.Logging.Level,
+		Encoding:         cfg.Logging.Encoding,
+		OutputPaths:      cfg.Logging.OutputPaths,
+		ErrorOutputPaths: cfg.Logging.ErrorOutputPaths,
+	})
 	if err != nil {
 		panic(err)
 	}
