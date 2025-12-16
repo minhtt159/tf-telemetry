@@ -22,11 +22,13 @@ type RateLimitConfig struct {
 
 type Config struct {
 	Server struct {
-		BindAddress string          `mapstructure:"bind_address"`
-		GRPCPort    int             `mapstructure:"grpc_port"`
-		HTTPPort    int             `mapstructure:"http_port"`
-		BasicAuth   BasicAuthConfig `mapstructure:"basic_auth"`
-		RateLimit   RateLimitConfig `mapstructure:"rate_limit"`
+		BindAddress        string          `mapstructure:"bind_address"`
+		GRPCPort           int             `mapstructure:"grpc_port"`
+		HTTPPort           int             `mapstructure:"http_port"`
+		BasicAuth          BasicAuthConfig `mapstructure:"basic_auth"`
+		RateLimit          RateLimitConfig `mapstructure:"rate_limit"`
+		MaxPacketSizeBytes int             `mapstructure:"max_packet_size_bytes"`
+		MaxContextAttrs    int             `mapstructure:"max_context_attributes"`
 	} `mapstructure:"server"`
 	Elastic struct {
 		Addresses     []string `mapstructure:"addresses"`
@@ -38,7 +40,10 @@ type Config struct {
 		FlushInterval int      `mapstructure:"flush_interval_seconds"`
 	} `mapstructure:"elasticsearch"`
 	Logging struct {
-		Level string `mapstructure:"level"`
+		Level            string   `mapstructure:"level"`
+		Encoding         string   `mapstructure:"encoding"`
+		OutputPaths      []string `mapstructure:"output_paths"`
+		ErrorOutputPaths []string `mapstructure:"error_output_paths"`
 	} `mapstructure:"logging"`
 }
 
