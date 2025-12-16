@@ -1,266 +1,202 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Telemetry Client Demo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .section {
-            margin-bottom: 25px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid #eee;
-        }
-        .section:last-child {
-            border-bottom: none;
-        }
-        h2 {
-            color: #555;
-            font-size: 1.2em;
-            margin-bottom: 15px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .status {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .status.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .status.info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        .config {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-        .config label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
-        .config input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            margin-bottom: 12px;
-            font-family: monospace;
-        }
-        .queue-status {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
-        }
-        pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-    </style>
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <div class="container">
-        <h1>🔭 Telemetry Client Demo</h1>
-        
-        <div class="section">
-            <h2>Configuration</h2>
-            <div class="config">
-                <label for="serverUrl">Server URL (HTTP/JSON):</label>
-                <input type="text" id="serverUrl" value="http://localhost:8080">
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    💡 This demo uses HTTP/JSON with UUID v7 as bytes. The server also supports native gRPC on port 50051 for binary protobuf (smaller packet size). Packet size is shown after sending.
-                </div>
-                
-                <label for="username">Username (if auth enabled):</label>
-                <input type="text" id="username" value="">
-                
-                <label for="password">Password (if auth enabled):</label>
-                <input type="password" id="password" value="">
-            </div>
-        </div>
+      <h1>🔭 Telemetry Client Demo</h1>
 
-        <div class="section">
-            <h2>Send Telemetry Data</h2>
-            <button onclick="sendMetrics()">Send Metrics</button>
-            <button onclick="sendLogs()">Send Logs</button>
-            <button onclick="sendBoth()">Send Both</button>
-            <div id="sendStatus"></div>
-        </div>
+      <div class="section">
+        <h2>Configuration</h2>
+        <div class="config">
+          <label for="serverUrl">Server URL (HTTP/JSON):</label>
+          <input type="text" id="serverUrl" value="http://localhost:8080" />
+          <div style="font-size: 12px; color: #666; margin-top: 5px">
+            💡 This demo uses HTTP/JSON with UUID v7 as bytes. The server also
+            supports native gRPC on port 50051 for binary protobuf (smaller
+            packet size). Packet size is shown after sending.
+          </div>
 
-        <div class="section">
-            <h2>Local Storage Queue</h2>
-            <button onclick="retryFailedPackets()">Retry Failed Packets</button>
-            <button onclick="clearQueue()">Clear Queue</button>
-            <div class="queue-status" id="queueStatus">Queue: 0 packets</div>
-            <div id="queueInfo"></div>
-        </div>
+          <label for="username">Username (if auth enabled):</label>
+          <input type="text" id="username" value="" />
 
-        <div class="section">
-            <h2>Sample Payloads</h2>
-            <button onclick="showMetricsSample()">Show Metrics Sample</button>
-            <button onclick="showLogsSample()">Show Logs Sample</button>
-            <div id="samplePayload"></div>
+          <label for="password">Password (if auth enabled):</label>
+          <input type="password" id="password" value="" />
         </div>
+      </div>
+
+      <div class="section">
+        <h2>Send Telemetry Data</h2>
+        <button onclick="sendMetrics()">Send Metrics</button>
+        <button onclick="sendLogs()">Send Logs</button>
+        <button onclick="sendBoth()">Send Both</button>
+        <div id="sendStatus"></div>
+      </div>
+
+      <div class="section">
+        <h2>Local Storage Queue</h2>
+        <button onclick="retryFailedPackets()">Retry Failed Packets</button>
+        <button onclick="clearQueue()">Clear Queue</button>
+        <div class="queue-status" id="queueStatus">Queue: 0 packets</div>
+        <div id="queueInfo"></div>
+      </div>
+
+      <div class="section">
+        <h2>Sample Payloads</h2>
+        <button onclick="showMetricsSample()">Show Metrics Sample</button>
+        <button onclick="showLogsSample()">Show Logs Sample</button>
+        <div id="samplePayload"></div>
+      </div>
     </div>
 
     <script src="telemetry.js"></script>
     <script>
-        // Initialize and update queue status on load
-        window.addEventListener('load', () => {
-            updateQueueStatus();
-            // Auto-retry failed packets every 30 seconds
-            setInterval(() => {
-                const queue = telemetry.getQueuedPackets();
-                if (queue.length > 0) {
-                    retryFailedPackets();
-                }
-            }, 30000);
-        });
+      // Initialize and update queue status on load
+      window.addEventListener("load", () => {
+        updateQueueStatus();
+        // Auto-retry failed packets every 30 seconds
+        setInterval(() => {
+          const queue = telemetry.getQueuedPackets();
+          if (queue.length > 0) {
+            retryFailedPackets();
+          }
+        }, 30000);
+      });
 
-        function getConfig() {
-            return {
-                serverUrl: document.getElementById('serverUrl').value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value
-            };
-        }
+      function getConfig() {
+        return {
+          serverUrl: document.getElementById("serverUrl").value,
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value,
+        };
+      }
 
-        function showStatus(elementId, message, type) {
-            const el = document.getElementById(elementId);
-            el.innerHTML = `<div class="status ${type}">${message}</div>`;
-            setTimeout(() => {
-                el.innerHTML = '';
-            }, 5000);
-        }
+      function showStatus(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = `<div class="status ${type}">${message}</div>`;
+        setTimeout(() => {
+          el.innerHTML = "";
+        }, 5000);
+      }
 
-        function updateQueueStatus() {
-            const queue = telemetry.getQueuedPackets();
-            document.getElementById('queueStatus').textContent = `Queue: ${queue.length} packet(s)`;
-        }
+      function updateQueueStatus() {
+        const queue = telemetry.getQueuedPackets();
+        document.getElementById("queueStatus").textContent =
+          `Queue: ${queue.length} packet(s)`;
+      }
 
-        async function sendMetrics() {
-            const config = getConfig();
-            try {
-                const result = await telemetry.sendMetrics(config.serverUrl, config.username, config.password);
-                const sizeMsg = result.packetSize ? ` (${result.packetSize} bytes)` : '';
-                showStatus('sendStatus', result.message + sizeMsg, result.success ? 'success' : 'error');
-            } catch (error) {
-                showStatus('sendStatus', `Error: ${error.message}`, 'error');
-            }
-            updateQueueStatus();
+      async function sendMetrics() {
+        const config = getConfig();
+        try {
+          const result = await telemetry.sendMetrics(
+            config.serverUrl,
+            config.username,
+            config.password,
+          );
+          const sizeMsg = result.packetSize
+            ? ` (${result.packetSize} bytes)`
+            : "";
+          showStatus(
+            "sendStatus",
+            result.message + sizeMsg,
+            result.success ? "success" : "error",
+          );
+        } catch (error) {
+          showStatus("sendStatus", `Error: ${error.message}`, "error");
         }
+        updateQueueStatus();
+      }
 
-        async function sendLogs() {
-            const config = getConfig();
-            try {
-                const result = await telemetry.sendLogs(config.serverUrl, config.username, config.password);
-                const sizeMsg = result.packetSize ? ` (${result.packetSize} bytes)` : '';
-                showStatus('sendStatus', result.message + sizeMsg, result.success ? 'success' : 'error');
-            } catch (error) {
-                showStatus('sendStatus', `Error: ${error.message}`, 'error');
-            }
-            updateQueueStatus();
+      async function sendLogs() {
+        const config = getConfig();
+        try {
+          const result = await telemetry.sendLogs(
+            config.serverUrl,
+            config.username,
+            config.password,
+          );
+          const sizeMsg = result.packetSize
+            ? ` (${result.packetSize} bytes)`
+            : "";
+          showStatus(
+            "sendStatus",
+            result.message + sizeMsg,
+            result.success ? "success" : "error",
+          );
+        } catch (error) {
+          showStatus("sendStatus", `Error: ${error.message}`, "error");
         }
+        updateQueueStatus();
+      }
 
-        async function sendBoth() {
-            const config = getConfig();
-            try {
-                const result = await telemetry.sendBoth(config.serverUrl, config.username, config.password);
-                const sizeMsg = result.packetSize ? ` (${result.packetSize} bytes)` : '';
-                showStatus('sendStatus', result.message + sizeMsg, result.success ? 'success' : 'error');
-            } catch (error) {
-                showStatus('sendStatus', `Error: ${error.message}`, 'error');
-            }
-            updateQueueStatus();
+      async function sendBoth() {
+        const config = getConfig();
+        try {
+          const result = await telemetry.sendBoth(
+            config.serverUrl,
+            config.username,
+            config.password,
+          );
+          const sizeMsg = result.packetSize
+            ? ` (${result.packetSize} bytes)`
+            : "";
+          showStatus(
+            "sendStatus",
+            result.message + sizeMsg,
+            result.success ? "success" : "error",
+          );
+        } catch (error) {
+          showStatus("sendStatus", `Error: ${error.message}`, "error");
         }
+        updateQueueStatus();
+      }
 
-        async function retryFailedPackets() {
-            const config = getConfig();
-            const result = await telemetry.retryQueuedPackets(config.serverUrl, config.username, config.password);
-            showStatus('queueInfo', result.message, result.success ? 'success' : 'info');
-            updateQueueStatus();
-        }
+      async function retryFailedPackets() {
+        const config = getConfig();
+        const result = await telemetry.retryQueuedPackets(
+          config.serverUrl,
+          config.username,
+          config.password,
+        );
+        showStatus(
+          "queueInfo",
+          result.message,
+          result.success ? "success" : "info",
+        );
+        updateQueueStatus();
+      }
 
-        function clearQueue() {
-            telemetry.clearQueue();
-            showStatus('queueInfo', 'Queue cleared!', 'success');
-            updateQueueStatus();
-        }
+      function clearQueue() {
+        telemetry.clearQueue();
+        showStatus("queueInfo", "Queue cleared!", "success");
+        updateQueueStatus();
+      }
 
-        function showMetricsSample() {
-            const sample = telemetry.generateMetricsPayload();
-            const payload = {
-                schema_version: 1,
-                metadata: telemetry.generateMetadata(),
-                metrics: sample
-            };
-            document.getElementById('samplePayload').innerHTML = 
-                '<pre>' + JSON.stringify(payload, null, 2) + '</pre>';
-        }
+      function showMetricsSample() {
+        const sample = telemetry.generateMetricsPayload();
+        const payload = {
+          schema_version: 1,
+          metadata: telemetry.generateMetadata(),
+          metrics: sample,
+        };
+        document.getElementById("samplePayload").innerHTML =
+          "<pre>" + JSON.stringify(payload, null, 2) + "</pre>";
+      }
 
-        function showLogsSample() {
-            const sample = telemetry.generateLogsPayload();
-            const payload = {
-                schema_version: 1,
-                metadata: telemetry.generateMetadata(),
-                logs: sample
-            };
-            document.getElementById('samplePayload').innerHTML = 
-                '<pre>' + JSON.stringify(payload, null, 2) + '</pre>';
-        }
+      function showLogsSample() {
+        const sample = telemetry.generateLogsPayload();
+        const payload = {
+          schema_version: 1,
+          metadata: telemetry.generateMetadata(),
+          logs: sample,
+        };
+        document.getElementById("samplePayload").innerHTML =
+          "<pre>" + JSON.stringify(payload, null, 2) + "</pre>";
+      }
     </script>
-</body>
+  </body>
 </html>

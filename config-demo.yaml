@@ -3,7 +3,7 @@ server:
   grpc_port: 50051
   http_port: 8080
   basic_auth:
-    enabled: true
+    enabled: false
     username: "demo"
     password: "demo123"
   rate_limit:
@@ -13,7 +13,12 @@ server:
   cors:
     enabled: true
     allowed_origins:
-      - "*"
+      - "http://localhost:3000"
+      - "http://localhost:8080"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+      - "X-Requested-With"
   max_packet_size_bytes: 1500
   max_context_attributes: 6
 
