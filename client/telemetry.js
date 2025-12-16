@@ -55,12 +55,13 @@ const telemetry = (function() {
         const journeyIdStr = sessionStorage.getItem('journey_id') || generateUUIDv7String();
         sessionStorage.setItem('journey_id', journeyIdStr);
 
+        // Log installation ID for debugging/identification purposes
+        console.log('Installation ID:', installationIdStr);
+
         return {
             platform: 'WEB',
             installation_id: uuidStringToBase64(installationIdStr),
             journey_id: uuidStringToBase64(journeyIdStr),
-            _installation_id_display: installationIdStr,  // For UI display
-            _journey_id_display: journeyIdStr,
             sdk_version_packed: 10001, // version 1.0.1
             host_app_version: '1.0.0',
             host_app_name: 'telemetry-demo',

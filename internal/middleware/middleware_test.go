@@ -556,3 +556,215 @@ func TestValidateBasicAuth_NoColon(t *testing.T) {
 		t.Fatal("expected error for missing colon")
 	}
 }
+
+// Tests for CORS Middleware
+
+func TestCorsMiddleware_Disabled(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: false,
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	// Should not have CORS headers when disabled
+	if w.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Fatal("expected no CORS headers when disabled")
+	}
+}
+
+func TestCorsMiddleware_WildcardOrigin(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	if w.Header().Get("Access-Control-Allow-Origin") != "*" {
+		t.Fatalf("expected wildcard origin, got %s", w.Header().Get("Access-Control-Allow-Origin"))
+	}
+}
+
+func TestCorsMiddleware_SpecificOrigin(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"http://localhost:3000", "http://example.com"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	tests := []struct {
+		name           string
+		origin         string
+		expectOrigin   string
+		expectCORS     bool
+	}{
+		{"allowed origin 1", "http://localhost:3000", "http://localhost:3000", true},
+		{"allowed origin 2", "http://example.com", "http://example.com", true},
+		{"disallowed origin", "http://evil.com", "", false},
+		{"no origin header", "", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			if tt.origin != "" {
+				req.Header.Set("Origin", tt.origin)
+			}
+			w := httptest.NewRecorder()
+
+			corsHandler.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d", w.Code)
+			}
+
+			gotOrigin := w.Header().Get("Access-Control-Allow-Origin")
+			if tt.expectCORS {
+				if gotOrigin != tt.expectOrigin {
+					t.Fatalf("expected origin %s, got %s", tt.expectOrigin, gotOrigin)
+				}
+			} else {
+				if gotOrigin != "" {
+					t.Fatalf("expected no CORS headers for disallowed origin, got %s", gotOrigin)
+				}
+			}
+		})
+	}
+}
+
+func TestCorsMiddleware_DefaultMethodsAndHeaders(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+		// Don't set methods and headers to test defaults
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	methods := w.Header().Get("Access-Control-Allow-Methods")
+	if methods == "" {
+		t.Fatal("expected default methods to be set")
+	}
+
+	headers := w.Header().Get("Access-Control-Allow-Headers")
+	if headers == "" {
+		t.Fatal("expected default headers to be set")
+	}
+
+	// Check for expected defaults
+	expectedMethods := []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	for _, method := range expectedMethods {
+		found := false
+		for i := 0; i < len(methods); i++ {
+			if methods[i:] == method || (i+len(method) < len(methods) && methods[i:i+len(method)] == method) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected method %s to be in default methods: %s", method, methods)
+		}
+	}
+}
+
+func TestCorsMiddleware_CustomMethodsAndHeaders(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST"},
+		AllowedHeaders: []string{"Content-Type", "X-Custom-Header"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	methods := w.Header().Get("Access-Control-Allow-Methods")
+	if methods != "GET, POST" {
+		t.Fatalf("expected 'GET, POST', got %s", methods)
+	}
+
+	headers := w.Header().Get("Access-Control-Allow-Headers")
+	if headers != "Content-Type, X-Custom-Header" {
+		t.Fatalf("expected 'Content-Type, X-Custom-Header', got %s", headers)
+	}
+}
+
+func TestCorsMiddleware_OptionsRequest(t *testing.T) {
+	cfg := config.CORSConfig{
+		Enabled: true,
+		AllowedOrigins: []string{"*"},
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// This should not be called for OPTIONS requests
+		t.Fatal("handler should not be called for OPTIONS requests")
+	})
+
+	corsHandler := CorsMiddleware(handler, cfg)
+
+	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req.Header.Set("Origin", "http://example.com")
+	w := httptest.NewRecorder()
+
+	corsHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for OPTIONS, got %d", w.Code)
+	}
+
+	if w.Header().Get("Access-Control-Allow-Origin") == "" {
+		t.Fatal("expected CORS headers for OPTIONS request")
+	}
+}

@@ -11,9 +11,20 @@ server:
     requests_per_second: 10
     burst: 20
   cors:
-    enabled: false
+    enabled: true
     allowed_origins:
-      - "*"
+      - "http://localhost:3000"
+      - "http://localhost:8080"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+      - "X-Requested-With"
   max_packet_size_bytes: 1500 # Maximum packet size (1 MTU)
   max_context_attributes: 6 # Maximum context attributes per log entry
 

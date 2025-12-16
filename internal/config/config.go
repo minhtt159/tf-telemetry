@@ -23,6 +23,8 @@ type RateLimitConfig struct {
 type CORSConfig struct {
 	Enabled        bool     `mapstructure:"enabled"`
 	AllowedOrigins []string `mapstructure:"allowed_origins"`
+	AllowedMethods []string `mapstructure:"allowed_methods"`
+	AllowedHeaders []string `mapstructure:"allowed_headers"`
 }
 
 type Config struct {
