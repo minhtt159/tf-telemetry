@@ -20,6 +20,11 @@ type RateLimitConfig struct {
 	Burst             int     `mapstructure:"burst"`
 }
 
+type CORSConfig struct {
+	Enabled        bool     `mapstructure:"enabled"`
+	AllowedOrigins []string `mapstructure:"allowed_origins"`
+}
+
 type Config struct {
 	Server struct {
 		BindAddress        string          `mapstructure:"bind_address"`
@@ -27,6 +32,7 @@ type Config struct {
 		HTTPPort           int             `mapstructure:"http_port"`
 		BasicAuth          BasicAuthConfig `mapstructure:"basic_auth"`
 		RateLimit          RateLimitConfig `mapstructure:"rate_limit"`
+		CORS               CORSConfig      `mapstructure:"cors"`
 		MaxPacketSizeBytes int             `mapstructure:"max_packet_size_bytes"`
 		MaxContextAttrs    int             `mapstructure:"max_context_attributes"`
 	} `mapstructure:"server"`
