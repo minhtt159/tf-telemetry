@@ -8,7 +8,7 @@ const telemetry = (function () {
   const STORAGE_KEY = "telemetry_queue";
   const MAX_QUEUE_SIZE = 100;
 
-  // Generate UUID v7 (time-ordered UUID with millisecond precision) as string
+  // Generate UUID v7
   function generateUUIDv7String() {
     return "tttttttt-tttt-7xxx-yxxx-xxxxxxxxxxxx"
       .replace(/[xy]/g, function (c) {
@@ -22,12 +22,13 @@ const telemetry = (function () {
       });
   }
 
-  // Convert UUID string to bytes array (for display)
-  function uuidStringToBytes(uuidStr) {
+  // Convert UUID string to base64 bytes (for protobuf)
+  function uuidStringToBase64(uuidStr) {
     const hex = uuidStr.replace(/-/g, "");
-    return new Uint8Array(
+    const bytes = new Uint8Array(
       hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)),
     );
+    return btoa(String.fromCharCode.apply(null, bytes));
   }
 
   // Generate client metadata (with bytes for server, string for display)
@@ -45,8 +46,8 @@ const telemetry = (function () {
 
     return {
       platform: "WEB",
-      installation_id: uuidStringToBytes(installationIdStr),
-      journey_id: uuidStringToBytes(journeyIdStr),
+      installation_id: uuidStringToBase64(installationIdStr),
+      journey_id: uuidStringToBase64(journeyIdStr),
       sdk_version_packed: 10001, // version 1.0.1
       host_app_version: "1.0.0",
       host_app_name: "telemetry-demo",
