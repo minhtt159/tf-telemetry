@@ -15,17 +15,18 @@ const telemetry = (function() {
         crypto.getRandomValues(randomBytes);
         
         // UUID v7 format: tttttttt-tttt-7xxx-yxxx-xxxxxxxxxxxx
-        // where t = timestamp, x = random, y = variant bits
+        // where t = timestamp (48 bits), x = random, y = variant bits
         const timestampHex = timestamp.toString(16).padStart(12, '0');
         const randomHex = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
         
         // Build UUID v7: timestamp (48 bits) + version (4 bits) + random (12 bits) + variant (2 bits) + random (62 bits)
+        // Total random needed: 74 bits = 10 bytes (we have exactly 10 random bytes = 20 hex chars)
         const uuid = [
-            timestampHex.slice(0, 8),
-            timestampHex.slice(8, 12),
-            '7' + randomHex.slice(0, 3),  // version 7
-            ((parseInt(randomHex.slice(3, 5), 16) & 0x3f) | 0x80).toString(16).padStart(2, '0') + randomHex.slice(5, 7),
-            randomHex.slice(7, 19)
+            timestampHex.slice(0, 8),                    // 8 chars: time_high
+            timestampHex.slice(8, 12),                   // 4 chars: time_mid
+            '7' + randomHex.slice(0, 3),                 // 4 chars: version + rand_a (12 bits)
+            ((parseInt(randomHex.slice(3, 5), 16) & 0x3f) | 0x80).toString(16).padStart(2, '0') + randomHex.slice(5, 7),  // 4 chars: variant + rand_b (14 bits)
+            randomHex.slice(7, 19)                       // 12 chars: rand_c (48 bits)
         ].join('-');
         
         return uuid;
