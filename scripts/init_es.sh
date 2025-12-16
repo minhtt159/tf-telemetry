@@ -8,10 +8,13 @@ curl -X PUT "$ES_HOST/mobile-metrics-v1" -H 'Content-Type: application/json' -d'
     "properties": {
       "timestamp": { "type": "date", "format": "epoch_millis" },
       "platform": { "type": "keyword" },
-      "customer_id": { "type": "integer" },
-      "app_version": { "type": "keyword" },
       "installation_id": { "type": "keyword" },
       "journey_id": { "type": "keyword" },
+      "sdk_version": { "type": "keyword" },
+      "host_app_name": { "type": "keyword" },
+      "host_app_version": { "type": "keyword" },
+      "host_app_name": { "type": "keyword" },
+      "host_app_version": { "type":  "keyword" },
       "network": { "type": "keyword" },
       "cpu_usage": { "type": "scaled_float", "scaling_factor": 100 },
       "battery_level": { "type": "scaled_float", "scaling_factor": 100 }
@@ -19,13 +22,19 @@ curl -X PUT "$ES_HOST/mobile-metrics-v1" -H 'Content-Type: application/json' -d'
   }
 }'
 
-echo "\nCreating Logs Index..."
+echo -e "\nCreating Logs Index..."
 curl -X PUT "$ES_HOST/mobile-logs-v1" -H 'Content-Type: application/json' -d'
 {
   "mappings": {
     "properties": {
       "timestamp": { "type": "date", "format": "epoch_millis" },
       "platform": { "type": "keyword" },
+      "installation_id": { "type": "keyword" },
+      "journey_id": { "type": "keyword" },
+      "sdk_version": { "type": "keyword" },
+      "host_app_name": { "type": "keyword" },
+      "host_app_version": { "type": "keyword" },
+      "network_type": { "type": "keyword" },
       "level": { "type": "keyword" },
       "tag": { "type": "keyword" },
       "message": { "type": "text" },
@@ -35,3 +44,5 @@ curl -X PUT "$ES_HOST/mobile-logs-v1" -H 'Content-Type: application/json' -d'
     }
   }
 }'
+
+echo -e "\nDone!"
