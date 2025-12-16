@@ -212,7 +212,6 @@ const telemetry = (function () {
 
     const headers = {
       "Content-Type": "application/json",
-      "Access-Control-Request-Private-Network": "true",
     };
 
     // Add basic auth if credentials provided
