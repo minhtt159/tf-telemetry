@@ -670,7 +670,8 @@ func TestCorsMiddleware_DefaultMethodsAndHeaders(t *testing.T) {
 	cfg := config.CORSConfig{
 		Enabled: true,
 		AllowedOrigins: []string{"*"},
-		// Don't set methods and headers to test defaults
+		// Don't set methods to test defaults
+		// Headers are not set - should not be present in response
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -690,12 +691,13 @@ func TestCorsMiddleware_DefaultMethodsAndHeaders(t *testing.T) {
 		t.Fatal("expected default methods to be set")
 	}
 
+	// Headers should NOT be set when not explicitly configured
 	headers := w.Header().Get("Access-Control-Allow-Headers")
-	if headers == "" {
-		t.Fatal("expected default headers to be set")
+	if headers != "" {
+		t.Fatalf("expected no headers when not explicitly configured, got: %s", headers)
 	}
 
-	// Check for expected defaults
+	// Check for expected default methods
 	expectedMethods := []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	for _, method := range expectedMethods {
 		if !strings.Contains(methods, method) {

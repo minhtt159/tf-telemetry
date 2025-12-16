@@ -60,8 +60,8 @@ const telemetry = (function() {
 
         return {
             platform: 'WEB',
-            installation_id: uuidStringToBase64(installationIdStr),
-            journey_id: uuidStringToBase64(journeyIdStr),
+            installation_id: installationIdStr,
+            journey_id: journeyIdStr,
             sdk_version_packed: 10001, // version 1.0.1
             host_app_version: '1.0.0',
             host_app_name: 'telemetry-demo',

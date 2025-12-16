@@ -18,10 +18,8 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 		allowedMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	}
 
+	// Headers must be explicitly configured - no defaults
 	allowedHeaders := cfg.AllowedHeaders
-	if len(allowedHeaders) == 0 {
-		allowedHeaders = []string{"Content-Type", "Authorization", "X-Requested-With"}
-	}
 
 	// Join methods and headers for header values
 	methodsStr := strings.Join(allowedMethods, ", ")
@@ -58,7 +56,9 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 
 		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", methodsStr)
-		w.Header().Set("Access-Control-Allow-Headers", headersStr)
+		if len(allowedHeaders) > 0 {
+			w.Header().Set("Access-Control-Allow-Headers", headersStr)
+		}
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
