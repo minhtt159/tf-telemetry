@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -697,14 +698,7 @@ func TestCorsMiddleware_DefaultMethodsAndHeaders(t *testing.T) {
 	// Check for expected defaults
 	expectedMethods := []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	for _, method := range expectedMethods {
-		found := false
-		for i := 0; i < len(methods); i++ {
-			if methods[i:] == method || (i+len(method) < len(methods) && methods[i:i+len(method)] == method) {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !strings.Contains(methods, method) {
 			t.Errorf("expected method %s to be in default methods: %s", method, methods)
 		}
 	}

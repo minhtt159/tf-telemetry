@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/threatfabric-devops/tf-telemetry/internal/config"
 )
@@ -23,8 +24,8 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 	}
 
 	// Join methods and headers for header values
-	methodsStr := joinStrings(allowedMethods, ", ")
-	headersStr := joinStrings(allowedHeaders, ", ")
+	methodsStr := strings.Join(allowedMethods, ", ")
+	headersStr := strings.Join(allowedHeaders, ", ")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -68,14 +69,4 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 	})
 }
 
-// joinStrings joins a slice of strings with a separator
-func joinStrings(strs []string, sep string) string {
-	if len(strs) == 0 {
-		return ""
-	}
-	result := strs[0]
-	for i := 1; i < len(strs); i++ {
-		result += sep + strs[i]
-	}
-	return result
-}
+
