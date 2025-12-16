@@ -94,11 +94,20 @@ func (s *Service) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket)
 }
 
 func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPoint) map[string]any {
+	installationID := ""
+	if metadata.GetInstallationId() != nil {
+		installationID = hex.EncodeToString(metadata.GetInstallationId())
+	}
+	journeyID := ""
+	if metadata.GetJourneyId() != nil {
+		journeyID = hex.EncodeToString(metadata.GetJourneyId())
+	}
+	
 	doc := map[string]any{
 		"timestamp":        point.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
-		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
-		"journey_id":       hex.EncodeToString(metadata.GetJourneyId()),
+		"installation_id":  installationID,
+		"journey_id":       journeyID,
 		"sdk_version":      metadata.GetSdkVersionPacked(),
 		"host_app_version": metadata.GetHostAppVersion(),
 		"host_app_name":    metadata.GetHostAppName(),
@@ -139,11 +148,20 @@ func (s *Service) metricDocument(metadata *pb.ClientMetadata, point *pb.MetricPo
 }
 
 func (s *Service) logDocument(metadata *pb.ClientMetadata, entry *pb.LogEntry) map[string]any {
+	installationID := ""
+	if metadata.GetInstallationId() != nil {
+		installationID = hex.EncodeToString(metadata.GetInstallationId())
+	}
+	journeyID := ""
+	if metadata.GetJourneyId() != nil {
+		journeyID = hex.EncodeToString(metadata.GetJourneyId())
+	}
+	
 	return map[string]any{
 		"timestamp":        entry.GetClientTimestampMs(),
 		"platform":         metadata.GetPlatform().String(),
-		"installation_id":  hex.EncodeToString(metadata.GetInstallationId()),
-		"journey_id":       hex.EncodeToString(metadata.GetJourneyId()),
+		"installation_id":  installationID,
+		"journey_id":       journeyID,
 		"sdk_version":      metadata.GetSdkVersionPacked(),
 		"host_app_version": metadata.GetHostAppVersion(),
 		"host_app_name":    metadata.GetHostAppName(),

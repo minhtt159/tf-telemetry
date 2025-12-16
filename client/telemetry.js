@@ -210,11 +210,9 @@ const telemetry = (function() {
         return { entries };
     }
 
-    // Send telemetry packet to server (useGrpc parameter to switch protocols)
-    async function sendTelemetryPacket(serverUrl, username, password, packet, useGrpc) {
-        // For now, we only support HTTP/JSON
-        // Full gRPC-web support requires grpc-web library and generated code
-        // But we document that native gRPC is available on port 50051
+    // Send telemetry packet to server
+    // Note: This uses HTTP/JSON. For native gRPC (port 50051), use a proper gRPC-web client
+    async function sendTelemetryPacket(serverUrl, username, password, packet) {
         const endpoint = serverUrl + '/v1/telemetry';
         
         const headers = {
