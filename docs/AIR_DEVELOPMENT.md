@@ -205,11 +205,11 @@ Edit `.air.toml` (local) or `.air-docker.toml` (Docker) to customize:
 ### Running with Different Configs
 
 ```bash
-# Use custom config
-air -c config-demo.yaml
+# Use custom Air configuration file
+air -c .air-docker.toml
 
-# Pass arguments to the binary
-# Edit .air.toml and set: args_bin = ["--config", "custom.yaml"]
+# Pass arguments to the application binary
+# Edit .air.toml and set: args_bin = ["--custom-flag", "value"]
 ```
 
 ### Integration with IDEs
