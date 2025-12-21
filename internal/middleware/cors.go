@@ -56,6 +56,7 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 
 		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", methodsStr)
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		if len(allowedHeaders) > 0 {
 			w.Header().Set("Access-Control-Allow-Headers", headersStr)
 		}
@@ -68,4 +69,3 @@ func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-

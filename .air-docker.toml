@@ -1,7 +1,4 @@
-# Air configuration for Docker development
-# This config enables file polling which works better with Docker volumes
 # Usage: docker-compose -f compose.dev.yaml up
-
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
@@ -18,12 +15,12 @@ tmp_dir = "tmp"
   exclude_unchanged = false
   follow_symlink = false
   log = "build-errors.log"
-  
+ 
   # Enable polling for Docker compatibility
   # File system notifications don't work well with Docker volume mounts
   poll = true
   poll_interval = 1000
-  
+ 
   delay = 1000
   stop_on_error = false
   send_interrupt = true

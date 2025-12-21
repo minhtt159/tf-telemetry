@@ -1,72 +1,32 @@
-# Air configuration for tf-telemetry
-# Live reload for Go applications: https://github.com/air-verse/air
-
+# 
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  # Command to build the application
   cmd = "go build -o ./tmp/main ./cmd/app"
-  
-  # Binary to run after successful build
   entrypoint = "tmp/main"
-  
-  # Enable full path in output
   full_bin = ""
-  
-  # Watch these filename extensions
   include_ext = ["go", "tpl", "tmpl", "html", "yaml"]
-  
-  # Ignore these filename extensions
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "bin", "client", "api/proto"]
-  
-  # Watch these directories if you're in GOPATH
   include_dir = []
-  
-  # Exclude files
   exclude_file = []
-  
-  # Exclude specific regular expressions
   exclude_regex = ["_test.go"]
-  
-  # Exclude unchanged files
   exclude_unchanged = false
-  
-  # Follow symbolic links for directories
   follow_symlink = false
-  
-  # This log file places in your tmp_dir
   log = "build-errors.log"
-  
-  # Poll for file changes instead of using fsnotify (useful in Docker)
+
+# Poll interval (ms) when poll is enabled
   poll = false
-  
-  # Poll interval (ms) when poll is enabled
   poll_interval = 0
-  
-  # Delay after receiving a file change event (ms)
+ 
   delay = 1000
-  
-  # Stop running old binary when build errors occur
   stop_on_error = false
-  
-  # Send Interrupt signal before killing process (useful for graceful shutdown)
   send_interrupt = true
-  
-  # Delay after sending Interrupt signal (ms)
   kill_delay = 500
-  
-  # Rerun binary or not
   rerun = false
-  
-  # Delay after each execution (ms)
   rerun_delay = 500
-  
-  # Add additional arguments when running the binary
   args_bin = []
-  
-  # Custom build command
   pre_cmd = []
   post_cmd = []
 
@@ -78,19 +38,12 @@ tmp_dir = "tmp"
   runner = "green"
 
 [log]
-  # Show log time
   time = true
-  
-  # Only show main log (silences watcher, build, runner)
   main_only = false
 
 [misc]
-  # Delete tmp directory on exit
   clean_on_exit = true
 
 [screen]
-  # Clear screen on rebuild
   clear_on_rebuild = true
-  
-  # Keep scroll position after rebuild
   keep_scroll = true

@@ -24,12 +24,12 @@ type TelemetryService interface {
 // New returns a configured HTTP server for telemetry ingestion.
 func New(cfg *config.Config, svc TelemetryService, limiter *middleware.RateLimiter) *http.Server {
 	handler := telemetryMux(svc, limiter)
-	// Add CORS middleware for web clients (configurable)
-	handler = middleware.CorsMiddleware(handler, cfg.Server.CORS)
 
 	if cfg.Server.BasicAuth.Enabled {
 		handler = middleware.BasicAuthHTTP(cfg.Server.BasicAuth)(handler)
 	}
+
+	handler = middleware.CorsMiddleware(handler, cfg.Server.CORS)
 
 	return &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", cfg.Server.BindAddress, cfg.Server.HTTPPort),

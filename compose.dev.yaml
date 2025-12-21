@@ -1,4 +1,3 @@
-# Docker Compose for development with Air hot reload
 # Usage: docker-compose -f compose.dev.yaml up
 services:
   # Telemetry server (Golang with Air hot reload)
