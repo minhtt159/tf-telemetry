@@ -3,12 +3,7 @@ FROM golang:1.25-alpine
 
 WORKDIR /app
 
-# Install Air for hot reload
-# Use ENV to skip TLS verification for go install if needed
-ENV GOPRIVATE=""
-RUN --mount=type=cache,target=/go/pkg/mod \
-    go install github.com/air-verse/air@latest 2>/dev/null || \
-    (echo "Warning: Could not install Air during build. Will use local installation." && exit 0)
+RUN go install github.com/cosmtrek/air@latest
 
 # Copy go mod files
 COPY go.mod go.sum ./
