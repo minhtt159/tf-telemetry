@@ -10,7 +10,7 @@ tmp_dir = "tmp"
   cmd = "go build -o ./tmp/main ./cmd/app"
   
   # Binary to run after successful build
-  bin = "tmp/main"
+  entrypoint = "tmp/main"
   
   # Enable full path in output
   full_bin = ""

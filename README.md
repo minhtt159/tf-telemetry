@@ -113,7 +113,7 @@ See `api/proto/*.proto` for complete schema definitions.
 
 ```bash
 # Install Air
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 ```
 
 #### Running with Air

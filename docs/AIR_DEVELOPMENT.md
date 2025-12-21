@@ -12,7 +12,7 @@ Air is a live-reload tool for Go applications. It watches your source files and 
 
 ```bash
 # Install Air
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 
 # Verify installation
 air -v
