@@ -107,7 +107,7 @@ See `api/proto/*.proto` for complete schema definitions.
 
 ### Local Development with Air (Hot Reload)
 
-[Air](https://github.com/cosmtrek/air) provides live reload for Go applications during development. When you save a file, Air automatically rebuilds and restarts the application.
+[Air](https://github.com/air-verse/air) provides live reload for Go applications during development. When you save a file, Air automatically rebuilds and restarts the application.
 
 #### Installation
 
