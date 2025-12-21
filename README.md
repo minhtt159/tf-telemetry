@@ -105,6 +105,57 @@ See `api/proto/*.proto` for complete schema definitions.
 
 ## Development
 
+### Local Development with Air (Hot Reload)
+
+[Air](https://github.com/cosmtrek/air) provides live reload for Go applications during development. When you save a file, Air automatically rebuilds and restarts the application.
+
+#### Installation
+
+```bash
+# Install Air
+go install github.com/cosmtrek/air@latest
+```
+
+#### Running with Air
+
+```bash
+# Run with Air for hot reload
+air
+
+# Or specify a custom config
+air -c .air.toml
+```
+
+Air will:
+- Watch for changes in `.go`, `.yaml`, `.html` files
+- Automatically rebuild the application
+- Restart the server with the new binary
+- Display build errors in the console
+
+Configuration is in `.air.toml` with settings optimized for local development.
+
+### Docker Development with Air
+
+For a complete development environment with hot reload in Docker:
+
+```bash
+# Start the development stack with Air hot reload
+docker-compose -f compose.dev.yaml up
+
+# Or rebuild and start
+docker-compose -f compose.dev.yaml up --build
+```
+
+This will:
+- Start the telemetry server with Air hot reload
+- Mount your local source code into the container
+- Automatically rebuild and restart on code changes
+- Start the web client on port 3000
+
+The Docker setup uses `.air-docker.toml` with polling enabled (required for Docker volume mounts).
+
+**Note**: The first build in Docker may take a minute. Subsequent rebuilds are much faster.
+
 ### Building
 
 ```bash

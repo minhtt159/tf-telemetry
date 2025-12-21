@@ -1,0 +1,42 @@
+# Docker Compose for development with Air hot reload
+# Usage: docker-compose -f compose.dev.yaml up
+services:
+  # Telemetry server (Golang with Air hot reload)
+  telemetry-server:
+    build:
+      context: .
+      dockerfile: build/Dockerfile.dev
+    command: air -c .air-docker.toml
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      # Mount source code for hot reload
+      - ./:/app:cached
+      # Exclude tmp directory from host
+      - /app/tmp
+      # Mount config
+      - ./config-demo.yaml:/app/config.yaml:ro
+    environment:
+      - TZ=UTC
+      - CGO_ENABLED=0
+    networks:
+      - telemetry-net
+    restart: unless-stopped
+
+  # Web client (nginx)
+  web-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - telemetry-net
+    restart: unless-stopped
+    depends_on:
+      - telemetry-server
+
+networks:
+  telemetry-net:
+    driver: bridge
