@@ -1,5 +1,5 @@
 # Air configuration for tf-telemetry
-# Live reload for Go applications: https://github.com/cosmtrek/air
+# Live reload for Go applications: https://github.com/air-verse/air
 
 root = "."
 testdata_dir = "testdata"
