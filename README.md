@@ -74,7 +74,8 @@ elasticsearch:
 - **internal/config**: Configuration management
 - **internal/logger**: Structured logging
 - **api/proto**: Protocol buffer definitions
-- **client**: HTML/JS web client demo
+- **client/http-client**: Browser-based HTML/JS demo client
+- **client/grpc-client**: Python gRPC client example
 
 ### Protocol
 
@@ -172,16 +173,30 @@ go build -o telemetry-server ./cmd/app
 go test ./...
 ```
 
-### Client Development
+### Client Examples
 
-The web client is a static HTML/JS application:
+#### HTTP Client (Browser-based)
+
+The HTTP client is a static HTML/JS application:
 
 ```bash
-cd client
+cd client/http-client
 python3 -m http.server 3000
 ```
 
-See [client/README.md](client/README.md) for more details.
+Then open http://localhost:3000 in your browser.
+
+#### gRPC Client (Python)
+
+The gRPC client is a Python command-line application:
+
+```bash
+cd client/grpc-client
+pip install -r requirements.txt
+python client.py --username demo --password demo123
+```
+
+See [client/README.md](client/README.md) for more details on both clients.
 
 ## Features
 

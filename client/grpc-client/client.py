@@ -21,9 +21,51 @@ import logs_pb2
 
 
 def generate_uuid_v7_bytes():
-    """Generate a UUID v7 (time-ordered) as bytes for installation/journey IDs."""
-    # For simplicity, using UUID v4 here. In production, use a proper UUID v7 implementation.
-    return uuid.uuid4().bytes
+    """
+    Generate a UUID v7 (time-ordered) as bytes for installation/journey IDs.
+    
+    UUID v7 format (RFC 9562):
+    - 48 bits: Unix timestamp in milliseconds
+    - 12 bits: sub-millisecond precision / random
+    - 2 bits: version (0b111 for v7)
+    - 62 bits: random
+    """
+    import struct
+    import random
+    
+    # Get current timestamp in milliseconds (48 bits)
+    timestamp_ms = int(time.time() * 1000)
+    
+    # Generate random bytes for the rest
+    rand_bytes = random.randbytes(10)
+    
+    # Construct UUID v7:
+    # - First 6 bytes: timestamp_ms (48 bits)
+    # - Next 2 bytes: random + version bits
+    # - Last 8 bytes: random
+    
+    # Pack timestamp (48 bits = 6 bytes)
+    time_bytes = timestamp_ms.to_bytes(6, byteorder='big')
+    
+    # Set version to 7 (4 bits) and variant to RFC4122 (2 bits)
+    # Version 7 = 0111, Variant = 10
+    rand_a = rand_bytes[0:2]
+    rand_b = rand_bytes[2:10]
+    
+    # Apply version (0111 = 7) to bits 48-51
+    version_byte_high = (rand_a[0] & 0x0F) | 0x70  # 0111xxxx
+    # Apply variant (10) to bits 64-65
+    variant_byte_high = (rand_b[0] & 0x3F) | 0x80  # 10xxxxxx
+    
+    # Combine all parts
+    uuid_bytes = (
+        time_bytes + 
+        bytes([version_byte_high, rand_a[1]]) +
+        bytes([variant_byte_high]) +
+        rand_b[1:]
+    )
+    
+    return uuid_bytes
 
 
 def create_sample_metrics():
