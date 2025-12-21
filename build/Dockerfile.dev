@@ -23,5 +23,5 @@ RUN mkdir -p /app/tmp
 # Expose ports
 EXPOSE 50051 8080
 
-# Run Air for hot reload
-CMD ["air", "-c", ".air.toml"]
+# Run Air for hot reload (uses .air-docker.toml by default in compose.dev.yaml)
+CMD ["air", "-c", ".air-docker.toml"]
