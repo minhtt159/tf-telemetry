@@ -8,6 +8,7 @@ to the tf-telemetry server using the gRPC protocol.
 
 import base64
 import grpc
+# Note: PyPI package is 'uuid7' but imports as 'uuid_extensions'
 from uuid_extensions import uuid7
 
 # Import the generated protobuf classes
