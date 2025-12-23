@@ -1,8 +1,35 @@
-# Default Docker Compose configuration for tf-telemetry
+# Docker Compose configuration for tf-telemetry
+# Default mode is development with Air hot reload
 # Usage: docker compose up
+# Production mode: docker compose --profile prod up
 services:
-  # Telemetry server
+  # Telemetry server (Development with Air hot reload)
   telemetry-server:
+    build:
+      context: .
+      dockerfile: build/Dockerfile.dev
+    command: air -c .air-docker.toml
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      # Mount source code for hot reload
+      - ./:/app:cached
+      # Exclude tmp directory from host
+      - /app/tmp
+      # Mount config
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - TZ=UTC
+      - CGO_ENABLED=0
+    networks:
+      - telemetry-net
+    restart: unless-stopped
+
+  # Telemetry server (Production)
+  telemetry-server-prod:
+    profiles:
+      - prod
     build:
       context: .
       dockerfile: build/Dockerfile
@@ -10,7 +37,7 @@ services:
       - "8080:8080"
       - "50051:50051"
     volumes:
-      - ./config-demo.yaml:/app/config.yaml:ro
+      - ./config.yaml:/app/config.yaml:ro
     environment:
       - TZ=UTC
     networks:
@@ -28,7 +55,12 @@ services:
       - telemetry-net
     restart: unless-stopped
     depends_on:
-      - telemetry-server
+      telemetry-server:
+        condition: service_started
+        required: false
+      telemetry-server-prod:
+        condition: service_started
+        required: false
 
 networks:
   telemetry-net:

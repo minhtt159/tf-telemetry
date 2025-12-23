@@ -38,7 +38,10 @@ func TestHTTPServerBasicAuth(t *testing.T) {
 
 	server := New(cfg, &stubTelemetryService{}, middleware.NewRateLimiter(config.RateLimitConfig{}))
 
-	body, _ := protojson.Marshal(&pb.TelemetryPacket{Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID}})
+	body, err := protojson.Marshal(&pb.TelemetryPacket{Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID}})
+	if err != nil {
+		t.Fatalf("failed to marshal: %v", err)
+	}
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", bytes.NewReader(body))
 	rr := httptest.NewRecorder()
@@ -61,7 +64,10 @@ func TestHTTPServerRateLimitByInstallationID(t *testing.T) {
 	rl := middleware.NewRateLimiter(config.RateLimitConfig{Enabled: true, RequestsPerSecond: 1, Burst: 1})
 	server := New(cfg, &stubTelemetryService{}, rl)
 
-	body, _ := protojson.Marshal(&pb.TelemetryPacket{Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID, InstallationId: []byte{0x01}}})
+	body, err := protojson.Marshal(&pb.TelemetryPacket{Metadata: &pb.ClientMetadata{Platform: pb.Platform_ANDROID, InstallationId: []byte{0x01}}})
+	if err != nil {
+		t.Fatalf("failed to marshal: %v", err)
+	}
 
 	handler := server.Handler
 	req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", bytes.NewReader(body))

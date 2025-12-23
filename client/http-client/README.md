@@ -24,7 +24,7 @@ This is a simple HTML/JavaScript client application that demonstrates how to sen
 From the repository root:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 This will start:
