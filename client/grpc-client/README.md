@@ -28,6 +28,7 @@ pip install -r requirements.txt
 ```
 
 The requirements include:
+
 - `grpcio` - gRPC framework for Python
 - `grpcio-tools` - Tools for generating Python code from .proto files
 - `protobuf` - Protocol buffer runtime library
@@ -51,6 +52,7 @@ python client.py --server <host>:<port>
 ```
 
 Example:
+
 ```bash
 python client.py --server telemetry.example.com:50051
 ```
@@ -74,6 +76,7 @@ python client.py --server localhost:50051 --username demo --password demo123
 To test against a local server:
 
 1. Start the telemetry server from the repository root:
+
    ```bash
    docker compose up
    ```
@@ -103,6 +106,7 @@ If the proto files change, regenerate the Python code:
 ```bash
 python -m grpc_tools.protoc \
   -I../../api/proto \
+  --pyi_out=. \
   --python_out=. \
   --grpc_python_out=. \
   ../../api/proto/common.proto \
@@ -125,7 +129,7 @@ packet.schema_version = 1
 # Add metadata
 metadata = packet.metadata
 metadata.platform = common_pb2.WEB
-metadata.installation_id = generate_uuid_v7_bytes()
+metadata.installation_id = uuid.uuid7().bytes
 metadata.host_app_name = "My App"
 
 # Add metrics
@@ -170,6 +174,7 @@ response = stub.SendTelemetry(packet, metadata=metadata)
 ### Metrics
 
 The client sends sample metrics including:
+
 - **Client timestamp** - When the metric was captured
 - **Network type** - WiFi, Cellular, etc.
 - **Battery level** - Battery percentage
@@ -179,6 +184,7 @@ The client sends sample metrics including:
 ### Logs
 
 The client sends sample log entries with:
+
 - **Client timestamp** - When the log was generated
 - **Network type** - Current network connection
 - **Log level** - DEBUG, INFO, WARN, ERROR, FATAL
@@ -202,6 +208,7 @@ Compared to the HTTP/JSON client:
 ### Connection Refused
 
 If you get a connection error:
+
 - Make sure the telemetry server is running
 - Verify the server address and port (default: 50051)
 - Check firewall settings
@@ -209,6 +216,7 @@ If you get a connection error:
 ### Authentication Failed
 
 If you get authentication errors:
+
 - Verify the username and password
 - Check if basic auth is enabled on the server
 - Look at the server logs for authentication details
@@ -216,6 +224,7 @@ If you get authentication errors:
 ### Import Errors
 
 If you get import errors for the generated files:
+
 - Make sure you've run the protoc command to generate the Python files
 - Check that all `.py` files exist in the grpc-client directory
 - Verify you're running the client from the correct directory

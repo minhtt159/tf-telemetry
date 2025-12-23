@@ -8,26 +8,20 @@ to the tf-telemetry server using the gRPC protocol.
 
 import base64
 import grpc
-# Note: PyPI package is 'uuid7' but imports as 'uuid_extensions'
-from uuid_extensions import uuid7
+import uuid
 
 # Import the generated protobuf classes
-from telemetry import common_pb2
-from telemetry import logs_pb2
-from telemetry import metrics_pb2
-from telemetry import telemetry_pb2
-from telemetry import telemetry_pb2_grpc
-
-
-def generate_uuid_v7_bytes():
-    """Generate a UUID v7 (time-ordered) as bytes for installation/journey IDs."""
-    return uuid7().bytes
+import common_pb2
+import logs_pb2
+import metrics_pb2
+import telemetry_pb2
+import telemetry_pb2_grpc
 
 
 def create_sample_metrics():
     """Create a sample metrics batch with CPU, memory, and battery data."""
     import time
-    
+
     metrics_batch = metrics_pb2.MetricBatch()
 
     # Create a metric point
@@ -52,7 +46,7 @@ def create_sample_metrics():
 def create_sample_logs():
     """Create a sample log batch with different severity levels."""
     import time
-    
+
     log_batch = logs_pb2.LogBatch()
 
     # INFO log
@@ -83,7 +77,9 @@ def create_sample_logs():
     error_log.message = "Failed to connect to external service"
     error_log.context["endpoint"] = "https://api.example.com"
     error_log.context["status_code"] = "503"
-    error_log.stack_trace = 'Traceback (most recent call last):\n  File "client.py", line 42, in connect\n    raise ConnectionError()'
+    error_log.stack_trace = """Traceback (most recent call last):
+File "client.py", line 42, in connect
+raise ConnectionError()"""
 
     return log_batch
 
@@ -98,8 +94,8 @@ def create_telemetry_packet():
     # Client metadata
     metadata = packet.metadata
     metadata.platform = common_pb2.WEB
-    metadata.installation_id = generate_uuid_v7_bytes()
-    metadata.journey_id = generate_uuid_v7_bytes()
+    metadata.installation_id = uuid.uuid7().bytes
+    metadata.journey_id = uuid.uuid7().bytes
     metadata.sdk_version_packed = 10000  # e.g., version 1.0.0
     metadata.host_app_version = "2.3.1"
     metadata.host_app_name = "Python gRPC Demo Client"
