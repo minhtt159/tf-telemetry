@@ -28,6 +28,7 @@ docker-compose up
 ```
 
 This will start:
+
 - **Telemetry Server** on ports 8080 (HTTP) and 50051 (gRPC)
 - **Web Client** on port 3000
 
@@ -54,6 +55,7 @@ You can modify these values in the web interface before sending telemetry data.
 ### Offline Support
 
 If the server is unavailable:
+
 - Packets are automatically queued in browser localStorage
 - The queue status shows how many packets are waiting
 - Failed packets are automatically retried every 30 seconds
@@ -65,6 +67,7 @@ If the server is unavailable:
 The JavaScript library generates realistic sample data:
 
 **Metrics include:**
+
 - Client timestamp
 - Network type (WiFi, Cellular, Offline)
 - Battery level percentage
@@ -73,6 +76,7 @@ The JavaScript library generates realistic sample data:
 - Device hardware info
 
 **Logs include:**
+
 - Client timestamp
 - Log level (DEBUG, INFO, WARN, ERROR, FATAL)
 - Tag/category
@@ -113,8 +117,9 @@ Authorization: Basic <base64-encoded-credentials>
 ```
 
 Response:
+
 ```json
-{"status":"accepted"}
+{ "status": "accepted" }
 ```
 
 ### gRPC Support
@@ -129,6 +134,7 @@ Port: 50051
 ```
 
 **Benefits of gRPC:**
+
 - Smaller packet size (binary protobuf vs JSON)
 - Better performance for high-frequency telemetry
 - Native support in mobile SDKs (iOS, Android)
