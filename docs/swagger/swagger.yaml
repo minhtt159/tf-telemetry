@@ -1,0 +1,79 @@
+basePath: /
+definitions:
+  internal_httpserver.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request format
+        type: string
+    type: object
+  internal_httpserver.TelemetryResponse:
+    properties:
+      status:
+        example: accepted
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: ThreatFabric DevOps
+    url: https://github.com/threatfabric-devops/tf-telemetry
+  description: Telemetry collection server for mobile and web applications
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: tf-telemetry API
+  version: "1.0"
+paths:
+  /healthz:
+    get:
+      description: Returns health status of the server
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
+  /v1/telemetry:
+    post:
+      consumes:
+      - application/json
+      description: Submit metrics and/or logs telemetry data
+      parameters:
+      - description: Telemetry packet with metadata, metrics, and logs
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/internal_httpserver.TelemetryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_httpserver.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_httpserver.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/internal_httpserver.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Send telemetry data
+      tags:
+      - telemetry
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

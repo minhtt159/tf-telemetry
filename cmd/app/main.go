@@ -1,3 +1,19 @@
+// Package main provides the entry point for tf-telemetry server.
+//
+//	@title			tf-telemetry API
+//	@version		1.0
+//	@description	Telemetry collection server for mobile and web applications
+//
+//	@contact.name	ThreatFabric DevOps
+//	@contact.url	https://github.com/threatfabric-devops/tf-telemetry
+//
+//	@license.name	MIT
+//	@license.url	https://opensource.org/licenses/MIT
+//
+//	@host			localhost:8080
+//	@BasePath		/
+//
+//	@securityDefinitions.basic	BasicAuth
 package main
 
 import (
@@ -19,6 +35,8 @@ import (
 	"github.com/threatfabric-devops/tf-telemetry/internal/logger"
 	"github.com/threatfabric-devops/tf-telemetry/internal/middleware"
 	"github.com/threatfabric-devops/tf-telemetry/internal/server"
+
+	_ "github.com/threatfabric-devops/tf-telemetry/docs/swagger" // swagger docs
 )
 
 func main() {

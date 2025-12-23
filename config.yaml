@@ -3,11 +3,11 @@ server:
   grpc_port: 50051
   http_port: 8080
   basic_auth:
-    enabled: false
-    username: ""
-    password: ""
+    enabled: true
+    username: "demo"
+    password: "demo123"
   rate_limit:
-    enabled: false
+    enabled: true
     requests_per_second: 10
     burst: 20
   cors:
@@ -28,18 +28,20 @@ server:
   max_packet_size_bytes: 1500 # Maximum packet size (1 MTU)
   max_context_attributes: 6 # Maximum context attributes per log entry
 
+# Elasticsearch configuration (empty addresses = use null indexer for demo)
+# To enable Elasticsearch, uncomment and configure the addresses below
 elasticsearch:
-  addresses:
-    - "http://elasticsearch:9200"
-  username: "elastic"
-  password: "changeme"
+  addresses: []
+    # - "http://elasticsearch:9200"
+  username: ""
+  password: ""
   index_metrics: "mobile-metrics-v1"
   index_logs: "mobile-logs-v1"
   batch_size: 100
   flush_interval_seconds: 5
 
 logging:
-  level: "info" # debug, info, warn, error
+  level: "debug" # debug, info, warn, error
   encoding: "json" # json or console
   output_paths:
     - "stdout"

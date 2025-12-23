@@ -2,60 +2,48 @@
 
 A telemetry collection server for mobile and web applications, with support for metrics and logs ingestion via gRPC and HTTP.
 
-## Build and test
+## Quick Start
 
 ```bash
-make build   # builds ./bin/tf-telemetry
-make test    # runs go test ./...
-```
-
-## Container image
-
-Build the image and run it locally:
-
-```bash
-docker build -f build/Dockerfile -t tf-telemetry:local .
-docker run --rm -p 8080:8080 -p 50051:50051 \
-  -v $(pwd)/config.yaml:/app/config.yaml \
-  tf-telemetry:local
-```
-
-
-## Quick Start with Docker Compose
-
-```bash
+# Start with hot reload (development mode - default)
 docker compose up
+
+# Start in production mode
+docker compose --profile prod up
 ```
 
 This will start:
 - **Telemetry Server** on ports 8080 (HTTP) and 50051 (gRPC)
-  - The HTTP endpoint accepts telemetry at `POST /v1/telemetry` and basic health is available at `/healthz`.
-  - Enable basic auth in `config.yaml` and provide credentials with `curl -u user:pass ...` when needed.
 - **Web Client Demo** on port 3000
 
-Then open your browser to: **http://localhost:3000**
-
-### Using the Web Client
-
-The web client provides an interactive interface to:
-- Send sample metrics (CPU, memory, battery)
-- Send sample logs (with different severity levels)
-- Configure server URL and basic authentication
-- View sample payloads
-- Manage offline queue (localStorage-based retry mechanism)
+Open your browser to: **http://localhost:3000**
 
 Default configuration:
-- **Server URL**: `http://localhost:8080`
-- **Basic Auth**: Enabled in demo config with username `demo` and password `demo123`
+- **Basic Auth**: username `demo`, password `demo123`
+- **Null Indexer**: Enabled by default (no Elasticsearch required for demo)
 
-### Configuration
+## Build and Test
 
-The docker-compose stack uses `config-demo.yaml` which:
-- Enables basic authentication (username: `demo`, password: `demo123`)
-- Uses a null indexer (no Elasticsearch required for demo)
-- Logs are output to stdout
+```bash
+make build     # builds ./bin/tf-telemetry
+make test      # runs go test ./...
+make lint      # runs golangci-lint
+make dev       # starts development server with Air
+make swagger   # generates Swagger documentation
+make clean     # removes build artifacts
+```
 
-To use with Elasticsearch, modify `config-demo.yaml` to include:
+## Configuration
+
+Edit `config.yaml` to configure:
+
+- Server bind address and ports
+- Basic authentication credentials
+- Rate limiting settings
+- Elasticsearch connection (empty addresses = null indexer)
+- Logging level
+
+To use with Elasticsearch, update `config.yaml`:
 ```yaml
 elasticsearch:
   addresses:
@@ -64,155 +52,66 @@ elasticsearch:
   password: "changeme"
 ```
 
+## API Endpoints
+
+### HTTP
+
+- `POST /v1/telemetry` - Submit telemetry data (JSON)
+- `GET /healthz` - Health check
+- `GET /swagger/*` - Swagger UI documentation
+
+### gRPC
+
+- Service: `observability.Collector`
+- Method: `SendTelemetry(TelemetryPacket) returns (Ack)`
+- Port: 50051
+
 ## Architecture
 
-### Components
-
-- **cmd/app**: Main server application
-- **internal/server**: HTTP and gRPC server implementation
-- **internal/indexer**: Elasticsearch bulk indexer (with null implementation for demos)
-- **internal/config**: Configuration management
-- **internal/logger**: Structured logging
-- **api/proto**: Protocol buffer definitions
-- **client/http-client**: Browser-based HTML/JS demo client
-- **client/grpc-client**: Python gRPC client example
-
-### Protocol
-
-The server accepts telemetry data via two protocols:
-
-**HTTP Endpoint**: `POST /v1/telemetry` (Port 8080)
-- Content-Type: `application/json`
-- Optional Basic Authentication
-- JSON payload matching protobuf schema
-- Used by the web demo client
-
-**gRPC Service**: `Collector.SendTelemetry` (Port 50051)
-- Service defined in `api/proto/telemetry.proto`
-- Binary protobuf encoding (smaller packet size)
-- Optional basic authentication via metadata
-- Recommended for mobile SDKs and high-frequency telemetry
-- Package: `observability`
-- Method: `SendTelemetry(TelemetryPacket) returns (Ack)`
-
-### Data Models
-
-**TelemetryPacket** contains:
-- `metadata`: Client information (platform, IDs, versions, hardware)
-- `metrics`: Performance metrics (CPU, memory, battery, network)
-- `logs`: Log entries with levels, tags, messages, and context
-
-See `api/proto/*.proto` for complete schema definitions.
+```
+cmd/app             - Main server application
+internal/server     - HTTP and gRPC server implementation
+internal/indexer    - Elasticsearch bulk indexer (with null implementation)
+internal/ingest     - Telemetry packet processing
+internal/config     - Configuration management
+internal/logger     - Structured logging
+api/proto           - Protocol buffer definitions
+client/http-client  - Browser-based HTML/JS demo client
+client/grpc-client  - Python gRPC client example
+```
 
 ## Development
 
-### Local Development with Air (Hot Reload)
-
-[Air](https://github.com/air-verse/air) provides live reload for Go applications during development. When you save a file, Air automatically rebuilds and restarts the application.
-
-#### Installation
+### Local Development with Air
 
 ```bash
 # Install Air
 go install github.com/air-verse/air@latest
-```
 
-#### Running with Air
-
-```bash
-# Run with Air for hot reload
+# Run with hot reload
 air
-
-# Or specify a custom config
-air -c .air.toml
 ```
 
-Air will:
-- Watch for changes in `.go`, `.yaml`, `.html` files
-- Automatically rebuild the application
-- Restart the server with the new binary
-- Display build errors in the console
+### Docker Development
 
-Configuration is in `.air.toml` with settings optimized for local development.
+The default `docker compose up` uses development mode with Air hot reload.
+Source code is mounted into the container and changes are automatically detected.
 
-### Docker Development with Air
+Configuration:
+- `.air.toml` - Local Air configuration
+- `.air-docker.toml` - Docker Air configuration (uses polling)
+- `build/Dockerfile.dev` - Development Dockerfile
 
-For a complete development environment with hot reload in Docker:
+## Client Examples
 
-```bash
-# Start the development stack with Air hot reload
-docker-compose -f compose.dev.yaml up
-
-# Or rebuild and start
-docker-compose -f compose.dev.yaml up --build
-```
-
-This will:
-- Start the telemetry server with Air hot reload
-- Mount your local source code into the container
-- Automatically rebuild and restart on code changes
-- Start the web client on port 3000
-
-The Docker setup uses `.air-docker.toml` with polling enabled (required for Docker volume mounts).
-
-**Note**: The first build in Docker may take a minute. Subsequent rebuilds are much faster.
-
-### Building
-
-```bash
-# Build the server
-go build -o telemetry-server ./cmd/app
-
-# Run with custom config
-./telemetry-server  # loads config.yaml by default
-```
-
-### Running Tests
-
-```bash
-go test ./...
-```
-
-### Client Examples
-
-#### HTTP Client (Browser-based)
-
-The HTTP client is a static HTML/JS application:
-
-```bash
-cd client/http-client
-python3 -m http.server 3000
-```
-
-Then open http://localhost:3000 in your browser.
-
-#### gRPC Client (Python)
-
-The gRPC client is a Python command-line application:
-
-```bash
-cd client/grpc-client
-pip install -r requirements.txt
-python client.py --username demo --password demo123
-```
-
-See [client/README.md](client/README.md) for more details on both clients.
+See [client/README.md](client/README.md) for HTTP and gRPC client examples.
 
 ## Features
 
 - **Dual Protocol**: HTTP and gRPC endpoints
-- **Authentication**: Optional basic auth for both protocols
-- **Rate Limiting**: Configurable per-client rate limiting
+- **Authentication**: Optional basic auth
+- **Rate Limiting**: Configurable per-client
 - **Batch Indexing**: Efficient Elasticsearch bulk indexing
 - **Demo Mode**: Null indexer for testing without Elasticsearch
-- **Health Check**: `/healthz` endpoint for monitoring
-
-## Configuration
-
-See `config.yaml` for available options:
-
-- Server bind address and ports
-- Basic authentication credentials
-- Rate limiting settings
-- Elasticsearch connection and indexing options
-- Logging level
+- **Swagger UI**: API documentation at `/swagger/`
+- **Hot Reload**: Air-based development workflow

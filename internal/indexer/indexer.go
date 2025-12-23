@@ -17,7 +17,7 @@ func New(cfg *config.Config, logger *zap.Logger) (*elasticsearch.Client, esutil.
 	// Check if Elasticsearch is configured (has at least one address)
 	if len(cfg.Elastic.Addresses) == 0 || cfg.Elastic.Addresses[0] == "" {
 		logger.Info("Elasticsearch not configured, using null indexer (data will not be persisted)")
-		return nil, NewNull(), nil
+		return nil, NewNullWithLogger(logger), nil
 	}
 
 	// Attempt to create ES client. Falls back to null indexer on error for graceful degradation.

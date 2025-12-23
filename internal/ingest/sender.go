@@ -41,6 +41,18 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		return nil, status.Error(codes.InvalidArgument, "missing metadata")
 	}
 
+	// Calculate and log packet size
+	packetSize := proto.Size(packet)
+	installationID := hex.EncodeToString(packet.Metadata.GetInstallationId())
+	journeyID := hex.EncodeToString(packet.Metadata.GetJourneyId())
+
+	s.logger.Debug("received telemetry packet",
+		zap.Int("packet_size_bytes", packetSize),
+		zap.String("installation_id", installationID),
+		zap.String("journey_id", journeyID),
+		zap.String("platform", packet.Metadata.GetPlatform().String()),
+	)
+
 	// Validate packet size - use configured value or default to 1500
 	maxPacketSize := s.cfg.Server.MaxPacketSizeBytes
 	if maxPacketSize == 0 {
