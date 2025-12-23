@@ -41,24 +41,28 @@ func (s *Sender) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) 
 		return nil, status.Error(codes.InvalidArgument, "missing metadata")
 	}
 
-	// Calculate and log packet size
+	// Calculate packet size for validation
 	packetSize := proto.Size(packet)
-	installationID := hex.EncodeToString(packet.Metadata.GetInstallationId())
-	journeyID := hex.EncodeToString(packet.Metadata.GetJourneyId())
 
-	s.logger.Debug("received telemetry packet",
-		zap.Int("packet_size_bytes", packetSize),
-		zap.String("installation_id", installationID),
-		zap.String("journey_id", journeyID),
-		zap.String("platform", packet.Metadata.GetPlatform().String()),
-	)
+	// Debug log with lazy evaluation of hex encoding
+	if s.logger.Core().Enabled(zap.DebugLevel) {
+		installationID := hex.EncodeToString(packet.Metadata.GetInstallationId())
+		journeyID := hex.EncodeToString(packet.Metadata.GetJourneyId())
+		s.logger.Debug("received telemetry packet",
+			zap.Int("packet_size_bytes", packetSize),
+			zap.String("installation_id", installationID),
+			zap.String("journey_id", journeyID),
+			zap.String("platform", packet.Metadata.GetPlatform().String()),
+		)
+	}
 
 	// Validate packet size - use configured value or default to 1500
 	maxPacketSize := s.cfg.Server.MaxPacketSizeBytes
 	if maxPacketSize == 0 {
 		maxPacketSize = 1500 // default: 1 MTU
 	}
-	if err := validatePacketSize(packet, maxPacketSize); err != nil {
+	if packetSize > maxPacketSize {
+		err := fmt.Errorf("packet size %d bytes exceeds maximum %d bytes", packetSize, maxPacketSize)
 		s.logger.Warn("packet size exceeded", zap.Error(err))
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
