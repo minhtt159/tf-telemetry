@@ -43,10 +43,8 @@ func dialBufConn(t *testing.T, srv *grpc.Server, lis *bufconn.Listener) pb.Colle
 		}
 	}()
 
-	ctx := context.Background()
-	conn, err := grpc.DialContext(
-		ctx,
-		"",
+	conn, err := grpc.NewClient(
+		"passthrough:///bufconn",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return lis.Dial() }),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -54,7 +52,9 @@ func dialBufConn(t *testing.T, srv *grpc.Server, lis *bufconn.Listener) pb.Colle
 		t.Fatalf("failed to dial bufconn: %v", err)
 	}
 	t.Cleanup(func() {
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Logf("failed to close connection: %v", err)
+		}
 		srv.Stop()
 	})
 	return pb.NewCollectorClient(conn)
