@@ -13,12 +13,14 @@ docker compose --profile prod up
 ```
 
 This will start:
+
 - **Telemetry Server** on ports 8080 (HTTP) and 50051 (gRPC)
 - **Web Client Demo** on port 3000
 
 Open your browser to: **http://localhost:3000**
 
 Default configuration:
+
 - **Basic Auth**: username `demo`, password `demo123`
 - **Null Indexer**: Enabled by default (no Elasticsearch required for demo)
 
@@ -44,6 +46,7 @@ Edit `config.yaml` to configure:
 - Logging level
 
 To use with Elasticsearch, update `config.yaml`:
+
 ```yaml
 elasticsearch:
   addresses:
@@ -98,6 +101,7 @@ The default `docker compose up` uses development mode with Air hot reload.
 Source code is mounted into the container and changes are automatically detected.
 
 Configuration:
+
 - `.air.toml` - Local Air configuration
 - `.air-docker.toml` - Docker Air configuration (uses polling)
 - `build/Dockerfile.dev` - Development Dockerfile

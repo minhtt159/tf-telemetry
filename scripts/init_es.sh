@@ -65,7 +65,7 @@ curl -X PUT "$ES_HOST/mobile-logs-v1" -H 'Content-Type: application/json' -d'
       "tag": { "type": "keyword" },
       "message": { "type": "text" },
       "stack_trace": { "type": "text" },
-      "context": { 
+      "context": {
         "type": "object",
         "enabled": true,
         "dynamic": true
