@@ -1,24 +1,18 @@
-# Usage: docker-compose -f compose.dev.yaml up
+# Default Docker Compose configuration for tf-telemetry
+# Usage: docker compose up
 services:
-  # Telemetry server (Golang with Air hot reload)
+  # Telemetry server
   telemetry-server:
     build:
       context: .
-      dockerfile: build/Dockerfile.dev
-    command: air -c .air-docker.toml
+      dockerfile: build/Dockerfile
     ports:
       - "8080:8080"
       - "50051:50051"
     volumes:
-      # Mount source code for hot reload
-      - ./:/app:cached
-      # Exclude tmp directory from host
-      - /app/tmp
-      # Mount config
       - ./config-demo.yaml:/app/config.yaml:ro
     environment:
       - TZ=UTC
-      - CGO_ENABLED=0
     networks:
       - telemetry-net
     restart: unless-stopped
