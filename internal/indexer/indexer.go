@@ -8,7 +8,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"go.uber.org/zap"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/config"
 )
 
 const defaultFlushBytes = 1024 * 1024

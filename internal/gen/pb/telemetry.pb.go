@@ -267,7 +267,7 @@ const file_telemetry_proto_rawDesc = "" +
 	"\v_journey_idB\x12\n" +
 	"\x10_device_hardware2P\n" +
 	"\tCollector\x12C\n" +
-	"\rSendTelemetry\x12\x1e.observability.TelemetryPacket\x1a\x12.observability.AckB@Z>github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pbb\x06proto3"
+	"\rSendTelemetry\x12\x1e.observability.TelemetryPacket\x1a\x12.observability.AckB6Z4github.com/minhtt159/tf-telemetry/internal/gen/pb;pbb\x06proto3"
 
 var (
 	file_telemetry_proto_rawDescOnce sync.Once

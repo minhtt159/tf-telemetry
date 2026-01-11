@@ -4,7 +4,7 @@ package server
 import (
 	"context"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
+	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
 )
 
 // TelemetrySender indexes telemetry packets.

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/config"
 )
 
 // RunHealthcheck performs a healthcheck against the HTTP server.

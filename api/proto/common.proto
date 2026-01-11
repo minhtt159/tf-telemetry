@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package observability;
 
-option go_package = "github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pb";
+option go_package = "github.com/minhtt159/tf-telemetry/internal/gen/pb;pb";
 
 enum Platform {
   PLATFORM_UNKNOWN = 0;

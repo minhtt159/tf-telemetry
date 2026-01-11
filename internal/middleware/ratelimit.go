@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
-	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
+	"github.com/minhtt159/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
 )
 
 // RateLimiter maintains per-key limiters backed by installation IDs.

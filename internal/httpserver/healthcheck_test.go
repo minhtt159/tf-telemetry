@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/config"
 )
 
 func TestRunHealthcheck_Success(t *testing.T) {

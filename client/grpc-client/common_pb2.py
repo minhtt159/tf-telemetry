@@ -24,14 +24,14 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0c\x63ommon.proto\x12\robservability*J\n\x08Platform\x12\x14\n\x10PLATFORM_UNKNOWN\x10\x00\x12\x07\n\x03WEB\x10\x01\x12\x07\n\x03IOS\x10\x02\x12\x0b\n\x07\x41NDROID\x10\x03\x12\t\n\x05OTHER\x10\x04*\xa0\x01\n\x0bNetworkType\x12\x0f\n\x0bNET_UNKNOWN\x10\x00\x12\x0c\n\x08NET_WIFI\x10\x01\x12\x13\n\x0fNET_CELLULAR_5G\x10\x02\x12\x13\n\x0fNET_CELLULAR_4G\x10\x03\x12\x13\n\x0fNET_CELLULAR_3G\x10\x04\x12\x13\n\x0fNET_CELLULAR_2G\x10\x05\x12\r\n\tNET_WIRED\x10\x06\x12\x0f\n\x0bNET_OFFLINE\x10\x07\x42@Z>github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0c\x63ommon.proto\x12\robservability*J\n\x08Platform\x12\x14\n\x10PLATFORM_UNKNOWN\x10\x00\x12\x07\n\x03WEB\x10\x01\x12\x07\n\x03IOS\x10\x02\x12\x0b\n\x07\x41NDROID\x10\x03\x12\t\n\x05OTHER\x10\x04*\xa0\x01\n\x0bNetworkType\x12\x0f\n\x0bNET_UNKNOWN\x10\x00\x12\x0c\n\x08NET_WIFI\x10\x01\x12\x13\n\x0fNET_CELLULAR_5G\x10\x02\x12\x13\n\x0fNET_CELLULAR_4G\x10\x03\x12\x13\n\x0fNET_CELLULAR_3G\x10\x04\x12\x13\n\x0fNET_CELLULAR_2G\x10\x05\x12\r\n\tNET_WIRED\x10\x06\x12\x0f\n\x0bNET_OFFLINE\x10\x07\x42\x36Z4github.com/minhtt159/tf-telemetry/internal/gen/pb;pbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'common_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z>github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pb'
+  _globals['DESCRIPTOR']._serialized_options = b'Z4github.com/minhtt159/tf-telemetry/internal/gen/pb;pb'
   _globals['_PLATFORM']._serialized_start=31
   _globals['_PLATFORM']._serialized_end=105
   _globals['_NETWORKTYPE']._serialized_start=108
