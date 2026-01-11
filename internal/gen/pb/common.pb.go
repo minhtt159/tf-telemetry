@@ -159,7 +159,7 @@ const file_common_proto_rawDesc = "" +
 	"\x0fNET_CELLULAR_3G\x10\x04\x12\x13\n" +
 	"\x0fNET_CELLULAR_2G\x10\x05\x12\r\n" +
 	"\tNET_WIRED\x10\x06\x12\x0f\n" +
-	"\vNET_OFFLINE\x10\aB@Z>github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pbb\x06proto3"
+	"\vNET_OFFLINE\x10\aB6Z4github.com/minhtt159/tf-telemetry/internal/gen/pb;pbb\x06proto3"
 
 var (
 	file_common_proto_rawDescOnce sync.Once

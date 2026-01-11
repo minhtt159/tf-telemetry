@@ -4,8 +4,8 @@
 //	@version		1.0
 //	@description	Telemetry collection server for mobile and web applications
 //
-//	@contact.name	ThreatFabric DevOps
-//	@contact.url	https://github.com/threatfabric-devops/tf-telemetry
+//	@contact.name Minh Tran
+//	@contact.url	https://github.com/minhtt159/tf-telemetry
 //
 //	@license.name	MIT
 //	@license.url	https://opensource.org/licenses/MIT
@@ -27,16 +27,16 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
-	"github.com/threatfabric-devops/tf-telemetry/internal/grpcserver"
-	"github.com/threatfabric-devops/tf-telemetry/internal/httpserver"
-	"github.com/threatfabric-devops/tf-telemetry/internal/indexer"
-	"github.com/threatfabric-devops/tf-telemetry/internal/ingest"
-	"github.com/threatfabric-devops/tf-telemetry/internal/logger"
-	"github.com/threatfabric-devops/tf-telemetry/internal/middleware"
-	"github.com/threatfabric-devops/tf-telemetry/internal/server"
+	"github.com/minhtt159/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/grpcserver"
+	"github.com/minhtt159/tf-telemetry/internal/httpserver"
+	"github.com/minhtt159/tf-telemetry/internal/indexer"
+	"github.com/minhtt159/tf-telemetry/internal/ingest"
+	"github.com/minhtt159/tf-telemetry/internal/logger"
+	"github.com/minhtt159/tf-telemetry/internal/middleware"
+	"github.com/minhtt159/tf-telemetry/internal/server"
 
-	_ "github.com/threatfabric-devops/tf-telemetry/docs/swagger" // swagger docs
+	_ "github.com/minhtt159/tf-telemetry/docs/swagger" // swagger docs
 )
 
 func main() {

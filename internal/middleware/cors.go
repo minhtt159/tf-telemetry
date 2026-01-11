@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/config"
 )
 
 func CorsMiddleware(next http.Handler, cfg config.CORSConfig) http.Handler {

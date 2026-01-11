@@ -13,9 +13,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
-	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
-	"github.com/threatfabric-devops/tf-telemetry/internal/middleware"
+	"github.com/minhtt159/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
+	"github.com/minhtt159/tf-telemetry/internal/middleware"
 )
 
 const bufSize = 1024 * 1024

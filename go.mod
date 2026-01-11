@@ -1,4 +1,4 @@
-module github.com/threatfabric-devops/tf-telemetry
+module github.com/minhtt159/tf-telemetry
 
 go 1.25.4
 

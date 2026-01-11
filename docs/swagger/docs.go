@@ -10,8 +10,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "ThreatFabric DevOps",
-            "url": "https://github.com/threatfabric-devops/tf-telemetry"
+            "name": "Minh Tran",
+            "url": "https://github.com/minhtt159/tf-telemetry"
         },
         "license": {
             "name": "MIT",

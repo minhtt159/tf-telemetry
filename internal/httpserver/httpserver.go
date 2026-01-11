@@ -12,9 +12,9 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
-	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
-	"github.com/threatfabric-devops/tf-telemetry/internal/middleware"
+	"github.com/minhtt159/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
+	"github.com/minhtt159/tf-telemetry/internal/middleware"
 )
 
 // TelemetryService defines the subset of the collector used by HTTP endpoints.

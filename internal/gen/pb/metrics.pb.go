@@ -396,7 +396,7 @@ const file_metrics_proto_rawDesc = "" +
 	"\x11system_free_bytes\x18\x03 \x01(\x04R\x0fsystemFreeBytes\x12.\n" +
 	"\x13system_active_bytes\x18\x04 \x01(\x04R\x11systemActiveBytes\x122\n" +
 	"\x15system_inactive_bytes\x18\x05 \x01(\x04R\x13systemInactiveBytes\x12,\n" +
-	"\x12system_wired_bytes\x18\x06 \x01(\x04R\x10systemWiredBytesB@Z>github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pbb\x06proto3"
+	"\x12system_wired_bytes\x18\x06 \x01(\x04R\x10systemWiredBytesB6Z4github.com/minhtt159/tf-telemetry/internal/gen/pb;pbb\x06proto3"
 
 var (
 	file_metrics_proto_rawDescOnce sync.Once

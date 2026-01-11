@@ -238,7 +238,7 @@ const file_logs_proto_rawDesc = "" +
 	"\x04INFO\x10\x01\x12\b\n" +
 	"\x04WARN\x10\x02\x12\t\n" +
 	"\x05ERROR\x10\x03\x12\t\n" +
-	"\x05FATAL\x10\x04B@Z>github.com/threatfabric-devops/tf-telemetry/internal/gen/pb;pbb\x06proto3"
+	"\x05FATAL\x10\x04B6Z4github.com/minhtt159/tf-telemetry/internal/gen/pb;pbb\x06proto3"
 
 var (
 	file_logs_proto_rawDescOnce sync.Once

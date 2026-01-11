@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/config"
+	"github.com/minhtt159/tf-telemetry/internal/config"
 )
 
 // BasicAuthHTTP wraps an HTTP handler with basic auth validation.

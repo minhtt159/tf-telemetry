@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/threatfabric-devops/tf-telemetry/internal/gen/pb"
+	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
 )
 
 type stubSender struct {
