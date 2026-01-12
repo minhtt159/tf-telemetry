@@ -4,8 +4,8 @@ package indexer
 import (
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
+	elasticsearch "github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/esutil"
 	"go.uber.org/zap"
 
 	"github.com/minhtt159/tf-telemetry/internal/config"

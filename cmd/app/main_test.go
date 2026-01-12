@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v8/esutil"
+	"github.com/elastic/go-elasticsearch/v9/esutil"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"

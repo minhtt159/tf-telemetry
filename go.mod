@@ -3,7 +3,7 @@ module github.com/minhtt159/tf-telemetry
 go 1.25.4
 
 require (
-	github.com/elastic/go-elasticsearch/v8 v8.19.1
+	github.com/elastic/go-elasticsearch/v9 v9.2.1
 	github.com/google/uuid v1.6.0
 	github.com/spf13/viper v1.21.0
 	github.com/swaggo/http-swagger/v2 v2.0.2

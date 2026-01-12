@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v8/esutil"
+	"github.com/elastic/go-elasticsearch/v9/esutil"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
@@ -299,7 +299,7 @@ func TestValidateUUIDv7_WrongVersion(t *testing.T) {
 	// Create a UUID v4 (wrong version)
 	u := uuid.New()
 	b, _ := u.MarshalBinary()
-	
+
 	err := validateUUIDv7(b, "test_id")
 	if err == nil {
 		t.Fatal("expected error for wrong UUID version")
@@ -315,7 +315,7 @@ func TestValidatePacketSize_Valid(t *testing.T) {
 			Platform: pb.Platform_ANDROID,
 		},
 	}
-	
+
 	if err := validatePacketSize(packet, 1500); err != nil {
 		t.Fatalf("expected valid packet size, got error: %v", err)
 	}
@@ -333,7 +333,7 @@ func TestValidatePacketSize_TooLarge(t *testing.T) {
 			},
 		},
 	}
-	
+
 	err := validatePacketSize(packet, 1500)
 	if err == nil {
 		t.Fatal("expected error for packet too large")
