@@ -34,6 +34,7 @@ import (
 	"github.com/minhtt159/tf-telemetry/internal/ingest"
 	"github.com/minhtt159/tf-telemetry/internal/logger"
 	"github.com/minhtt159/tf-telemetry/internal/middleware"
+	"github.com/minhtt159/tf-telemetry/internal/service"
 
 	_ "github.com/minhtt159/tf-telemetry/docs/swagger" // swagger docs
 )
@@ -69,7 +70,7 @@ func main() {
 	}
 
 	sender := ingest.NewSender(log, bi, cfg)
-	svc := httpserver.NewService(sender)
+	svc := service.New(sender)
 	limiter := middleware.NewRateLimiter(cfg.Server.RateLimit)
 
 	grpcServer := grpcserver.New(cfg, svc, limiter)
