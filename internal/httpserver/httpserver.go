@@ -82,7 +82,7 @@ func (h *Handler) setupRoutes() http.Handler {
 //	@Param			body	body		object	true	"Telemetry packet with metadata, metrics, and logs"
 //	@Success		202		{object}	TelemetryResponse
 //	@Failure		400		{object}	ErrorResponse
-//	@Failure		401		{object}	ErrorResponse
+//	@Failure		405		{object}	ErrorResponse
 //	@Failure		429		{object}	ErrorResponse
 //	@Security		BasicAuth
 //	@Router			/v1/telemetry [post]

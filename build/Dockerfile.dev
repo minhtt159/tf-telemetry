@@ -1,14 +1,6 @@
 # Development Dockerfile with Air for hot reload
 FROM golang:1.25-alpine
 
-# Image labels (OCI standard)
-LABEL org.opencontainers.image.title="tf-telemetry-dev"
-LABEL org.opencontainers.image.description="Telemetry collection server - Development image with Air hot reload"
-LABEL org.opencontainers.image.source="https://github.com/minhtt159/tf-telemetry"
-LABEL org.opencontainers.image.vendor="hnimn.art"
-LABEL org.opencontainers.image.authors="minhtt159 <4847344+minhtt159@users.noreply.github.com>"
-LABEL org.opencontainers.image.licenses="MIT"
-
 WORKDIR /app
 
 # Install Air for hot reload

@@ -19,6 +19,7 @@ FROM gcr.io/distroless/static-debian12:nonroot
 # Image labels (OCI standard)
 LABEL org.opencontainers.image.title="tf-telemetry"
 LABEL org.opencontainers.image.description="Telemetry collection server for mobile and web applications"
+LABEL org.opencontainers.image.url="https://github.com/minhtt159/tf-telemetry"
 LABEL org.opencontainers.image.source="https://github.com/minhtt159/tf-telemetry"
 LABEL org.opencontainers.image.vendor="hnimn.art"
 LABEL org.opencontainers.image.authors="minhtt159 <4847344+minhtt159@users.noreply.github.com>"

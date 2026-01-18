@@ -84,8 +84,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_httpserver.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "405": {
+                        "description": "Method Not Allowed",
                         "schema": {
                             "$ref": "#/definitions/internal_httpserver.ErrorResponse"
                         }
