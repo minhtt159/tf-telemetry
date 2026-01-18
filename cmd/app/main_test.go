@@ -12,7 +12,7 @@ import (
 	"github.com/minhtt159/tf-telemetry/internal/config"
 	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
 	"github.com/minhtt159/tf-telemetry/internal/ingest"
-	"github.com/minhtt159/tf-telemetry/internal/server"
+	"github.com/minhtt159/tf-telemetry/internal/service"
 )
 
 type recordingBulkIndexer struct {
@@ -42,7 +42,7 @@ func TestMainCanSendTelemetry(t *testing.T) {
 	cfg.Server.MaxContextAttrs = 6
 
 	sender := ingest.NewSender(zap.NewNop(), indexer, cfg)
-	svc := server.New(sender)
+	svc := service.New(sender)
 	packet := &pb.TelemetryPacket{
 		Metadata: &pb.ClientMetadata{
 			Platform:       pb.Platform_ANDROID,

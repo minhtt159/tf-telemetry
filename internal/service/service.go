@@ -1,5 +1,5 @@
-// Package server implements the telemetry collector gRPC service.
-package server
+// Package service implements the telemetry collector gRPC service.
+package service
 
 import (
 	"context"
@@ -7,12 +7,12 @@ import (
 	"github.com/minhtt159/tf-telemetry/internal/gen/pb"
 )
 
-// TelemetrySender indexes telemetry packets.
+// TelemetrySender processes telemetry packets.
 type TelemetrySender interface {
 	SendTelemetry(context.Context, *pb.TelemetryPacket) (*pb.Ack, error)
 }
 
-// Service implements the CollectorServer and delegates indexing to the ingest sender.
+// Service implements the CollectorServer and delegates to the telemetry sender.
 type Service struct {
 	pb.UnimplementedCollectorServer
 	sender TelemetrySender
@@ -25,7 +25,7 @@ func New(sender TelemetrySender) *Service {
 	}
 }
 
-// SendTelemetry indexes incoming telemetry data.
+// SendTelemetry delegates incoming telemetry data to the sender for processing (e.g., indexing).
 func (s *Service) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) (*pb.Ack, error) {
 	return s.sender.SendTelemetry(ctx, packet)
 }
