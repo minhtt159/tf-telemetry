@@ -1,4 +1,4 @@
-package server
+package httpserver
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func (s *stubSender) SendTelemetry(_ context.Context, packet *pb.TelemetryPacket
 
 func TestServiceDelegatesToSender(t *testing.T) {
 	sender := &stubSender{}
-	svc := New(sender)
+	svc := NewService(sender)
 
 	packet := &pb.TelemetryPacket{Metadata: &pb.ClientMetadata{InstallationId: []byte{0x01}}}
 	ack, err := svc.SendTelemetry(context.Background(), packet)

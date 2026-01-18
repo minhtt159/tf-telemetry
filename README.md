@@ -73,7 +73,8 @@ elasticsearch:
 
 ```
 cmd/app             - Main server application
-internal/server     - HTTP and gRPC server implementation
+internal/httpserver - HTTP server and collector service
+internal/grpcserver - gRPC server wiring
 internal/indexer    - Elasticsearch bulk indexer (with null implementation)
 internal/ingest     - Telemetry packet processing
 internal/config     - Configuration management
