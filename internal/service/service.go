@@ -25,7 +25,7 @@ func New(sender TelemetrySender) *Service {
 	}
 }
 
-// SendTelemetry delegates incoming telemetry data to the sender.
+// SendTelemetry delegates incoming telemetry data to the sender for processing (e.g., indexing).
 func (s *Service) SendTelemetry(ctx context.Context, packet *pb.TelemetryPacket) (*pb.Ack, error) {
 	return s.sender.SendTelemetry(ctx, packet)
 }
