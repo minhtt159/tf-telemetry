@@ -1,5 +1,5 @@
 # Development Dockerfile with Air for hot reload
-FROM golang:1.25-alpine
+FROM golang:1.27-alpine
 
 WORKDIR /app
 
