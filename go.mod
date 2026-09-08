@@ -1,6 +1,6 @@
 module github.com/minhtt159/tf-telemetry
 
-go 1.25.4
+go 1.26.0
 
 require (
 	github.com/elastic/go-elasticsearch/v9 v9.2.1
@@ -9,7 +9,7 @@ require (
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.27.1
-	golang.org/x/time v0.14.0
+	golang.org/x/time v0.16.0
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 )
